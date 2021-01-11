@@ -14,6 +14,28 @@
 #   run results please launch the synthesis/implementation runs as needed.
 #
 #*****************************************************************************************
+# Check file required for this script exists
+proc checkRequiredFiles { origin_dir} {
+  set status true
+  set files [list \
+   "${origin_dir}/src/vsrc/axis_bitflip.v" \
+   "${origin_dir}/src/vsrc/axis_ema.sv" \
+   "${origin_dir}/src/vsrc/axis_ema.v" \
+   "${origin_dir}/src/vtests/sim_bitflip/tb_bitflip.sv" \
+   "${origin_dir}/src/vtests/sim_bitflip/tb_bitflip_behav.wcfg" \
+   "${origin_dir}/src/vtests/sim_ema/tb_ema_behav.wcfg" \
+   "${origin_dir}/src/vtests/sim_ema/tb_ema.sv" \
+   "${origin_dir}/src/vtests/sim_ema/tb_ema_behav.wcfg" \
+  ]
+  foreach ifile $files {
+    if { ![file isfile $ifile] } {
+      puts " Could not find remote file $ifile "
+      set status false
+    }
+  }
+
+  return $status
+}
 # Set the reference directory for source file relative paths (by default the value is script directory path)
 set origin_dir [file dirname [info script]]
 
@@ -81,6 +103,17 @@ if { $::argc > 0 } {
 # Set the directory path for the original project from where this script was exported
 set orig_proj_dir "[file normalize "$origin_dir/vivado_project"]"
 
+# Check for paths and files needed for project creation
+set validate_required 0
+if { $validate_required } {
+  if { [checkRequiredFiles $origin_dir] } {
+    puts "Tcl file $script_file is valid. All files required for project creation is accesable. "
+  } else {
+    puts "Tcl file $script_file is not valid. Not all files required for project creation is accesable. "
+    return
+  }
+}
+
 # Create project
 create_project ${_xil_proj_name_} $origin_dir/vivado_project -part xc7z020clg400-1 -quiet -force
 
@@ -90,9 +123,7 @@ set proj_dir [get_property directory [current_project]]
 # Set project properties
 set obj [current_project]
 set_property -name "board_part" -value "www.digilentinc.com:pynq-z1:part0:1.0" -objects $obj
-set_property -name "corecontainer.enable" -value "1" -objects $obj
 set_property -name "default_lib" -value "xil_defaultlib" -objects $obj
-set_property -name "enable_core_container" -value "1" -objects $obj
 set_property -name "enable_vhdl_2008" -value "1" -objects $obj
 set_property -name "ip_cache_permissions" -value "read write" -objects $obj
 set_property -name "ip_output_repo" -value "$proj_dir/${_xil_proj_name_}.cache/ip" -objects $obj
@@ -101,14 +132,14 @@ set_property -name "platform.board_id" -value "pynq-z1" -objects $obj
 set_property -name "sim.central_dir" -value "$proj_dir/${_xil_proj_name_}.ip_user_files" -objects $obj
 set_property -name "sim.ip.auto_export_scripts" -value "1" -objects $obj
 set_property -name "simulator_language" -value "Mixed" -objects $obj
-set_property -name "webtalk.activehdl_export_sim" -value "5" -objects $obj
-set_property -name "webtalk.ies_export_sim" -value "5" -objects $obj
-set_property -name "webtalk.modelsim_export_sim" -value "5" -objects $obj
-set_property -name "webtalk.questa_export_sim" -value "5" -objects $obj
-set_property -name "webtalk.riviera_export_sim" -value "5" -objects $obj
-set_property -name "webtalk.vcs_export_sim" -value "5" -objects $obj
-set_property -name "webtalk.xsim_export_sim" -value "5" -objects $obj
-set_property -name "webtalk.xsim_launch_sim" -value "8" -objects $obj
+set_property -name "webtalk.activehdl_export_sim" -value "10" -objects $obj
+set_property -name "webtalk.ies_export_sim" -value "10" -objects $obj
+set_property -name "webtalk.modelsim_export_sim" -value "10" -objects $obj
+set_property -name "webtalk.questa_export_sim" -value "10" -objects $obj
+set_property -name "webtalk.riviera_export_sim" -value "10" -objects $obj
+set_property -name "webtalk.vcs_export_sim" -value "10" -objects $obj
+set_property -name "webtalk.xsim_export_sim" -value "10" -objects $obj
+set_property -name "webtalk.xsim_launch_sim" -value "6" -objects $obj
 set_property -name "xpm_libraries" -value "XPM_CDC XPM_FIFO XPM_MEMORY" -objects $obj
 
 # Create 'sources_1' fileset (if not found)
@@ -153,6 +184,22 @@ set obj [get_filesets constrs_1]
 # Set 'constrs_1' fileset properties
 set obj [get_filesets constrs_1]
 
+# Create 'sim_1' fileset (if not found)
+if {[string equal [get_filesets -quiet sim_1] ""]} {
+  create_fileset -simset sim_1
+}
+
+# Set 'sim_1' fileset object
+set obj [get_filesets sim_1]
+# Empty (no sources present)
+
+# Set 'sim_1' fileset properties
+set obj [get_filesets sim_1]
+set_property -name "hbs.configure_design_for_hier_access" -value "1" -objects $obj
+set_property -name "top" -value "axis_ema" -objects $obj
+set_property -name "top_file" -value "src/vsrc/axis_ema.v" -objects $obj
+set_property -name "top_lib" -value "xil_defaultlib" -objects $obj
+
 # Create 'sim_bitflip' fileset (if not found)
 if {[string equal [get_filesets -quiet sim_bitflip] ""]} {
   create_fileset -simset sim_bitflip
@@ -162,6 +209,8 @@ if {[string equal [get_filesets -quiet sim_bitflip] ""]} {
 set obj [get_filesets sim_bitflip]
 set files [list \
  [file normalize "${origin_dir}/src/vtests/sim_bitflip/tb_bitflip.sv"] \
+ [file normalize "${origin_dir}/src/vtests/sim_bitflip/tb_bitflip_behav.wcfg"] \
+ [file normalize "${origin_dir}/src/vtests/sim_ema/tb_ema_behav.wcfg"] \
 ]
 add_files -norecurse -fileset $obj $files
 
@@ -191,6 +240,7 @@ if {[string equal [get_filesets -quiet sim_ema] ""]} {
 set obj [get_filesets sim_ema]
 set files [list \
  [file normalize "${origin_dir}/src/vtests/sim_ema/tb_ema.sv"] \
+ [file normalize "${origin_dir}/src/vtests/sim_ema/tb_ema_behav.wcfg"] \
 ]
 add_files -norecurse -fileset $obj $files
 
@@ -221,31 +271,13 @@ set obj [get_filesets utils_1]
 
 # Adding sources referenced in BDs, if not already added
 if { [get_files axis_bitflip.v] == "" } {
-  import_files -quiet -fileset sources_1 /home/lukefahr/e315/P3_EMA/src/vsrc/axis_bitflip.v
+  import_files -quiet -fileset sources_1 /home/lukefahr/e315/P3_EMA_DEV/src/vsrc/axis_bitflip.v
 }
 if { [get_files axis_ema.sv] == "" } {
-  import_files -quiet -fileset sources_1 /home/lukefahr/e315/P3_EMA/src/vsrc/axis_ema.sv
+  import_files -quiet -fileset sources_1 /home/lukefahr/e315/P3_EMA_DEV/src/vsrc/axis_ema.sv
 }
 if { [get_files axis_ema.v] == "" } {
-  import_files -quiet -fileset sources_1 /home/lukefahr/e315/P3_EMA/src/vsrc/axis_ema.v
-}
-if { [get_files axis_ema.sv] == "" } {
-  import_files -quiet -fileset sources_1 /home/lukefahr/e315/P3_EMA/src/vsrc/axis_ema.sv
-}
-if { [get_files axis_ema.v] == "" } {
-  import_files -quiet -fileset sources_1 /home/lukefahr/e315/P3_EMA/src/vsrc/axis_ema.v
-}
-if { [get_files axis_ema.sv] == "" } {
-  import_files -quiet -fileset sources_1 /home/lukefahr/e315/P3_EMA/src/vsrc/axis_ema.sv
-}
-if { [get_files axis_ema.v] == "" } {
-  import_files -quiet -fileset sources_1 /home/lukefahr/e315/P3_EMA/src/vsrc/axis_ema.v
-}
-if { [get_files axis_ema.sv] == "" } {
-  import_files -quiet -fileset sources_1 /home/lukefahr/e315/P3_EMA/src/vsrc/axis_ema.sv
-}
-if { [get_files axis_ema.v] == "" } {
-  import_files -quiet -fileset sources_1 /home/lukefahr/e315/P3_EMA/src/vsrc/axis_ema.v
+  import_files -quiet -fileset sources_1 /home/lukefahr/e315/P3_EMA_DEV/src/vsrc/axis_ema.v
 }
 
 
@@ -253,7 +285,7 @@ if { [get_files axis_ema.v] == "" } {
 proc cr_bd_design_fpga { parentCell } {
 # The design that will be created by this Tcl proc contains the following 
 # module references:
-# axis_bitflip, axis_ema, axis_ema, axis_ema, axis_ema
+# axis_bitflip, axis_ema
 
 
 
@@ -274,7 +306,6 @@ proc cr_bd_design_fpga { parentCell } {
   xilinx.com:ip:axi_dma:7.1\
   xilinx.com:ip:processing_system7:5.5\
   xilinx.com:ip:proc_sys_reset:5.0\
-  xilinx.com:ip:smartconnect:1.0\
   xilinx.com:ip:system_ila:1.1\
   "
 
@@ -303,9 +334,6 @@ proc cr_bd_design_fpga { parentCell } {
      set list_check_mods "\ 
   axis_bitflip\
   axis_ema\
-  axis_ema\
-  axis_ema\
-  axis_ema\
   "
 
    set list_mods_missing ""
@@ -329,153 +357,6 @@ proc cr_bd_design_fpga { parentCell } {
     return 3
   }
 
-  
-# Hierarchical cell: e315
-proc create_hier_cell_e315 { parentCell nameHier } {
-
-  variable script_folder
-
-  if { $parentCell eq "" || $nameHier eq "" } {
-     catch {common::send_gid_msg -ssname BD::TCL -id 2092 -severity "ERROR" "create_hier_cell_e315() - Empty argument(s)!"}
-     return
-  }
-
-  # Get object for parentCell
-  set parentObj [get_bd_cells $parentCell]
-  if { $parentObj == "" } {
-     catch {common::send_gid_msg -ssname BD::TCL -id 2090 -severity "ERROR" "Unable to find parent cell <$parentCell>!"}
-     return
-  }
-
-  # Make sure parentObj is hier blk
-  set parentType [get_property TYPE $parentObj]
-  if { $parentType ne "hier" } {
-     catch {common::send_gid_msg -ssname BD::TCL -id 2091 -severity "ERROR" "Parent <$parentObj> has TYPE = <$parentType>. Expected to be <hier>."}
-     return
-  }
-
-  # Save current instance; Restore later
-  set oldCurInst [current_bd_instance .]
-
-  # Set parent object as current
-  current_bd_instance $parentObj
-
-  # Create cell and set as current instance
-  set hier_obj [create_bd_cell -type hier $nameHier]
-  current_bd_instance $hier_obj
-
-  # Create interface pins
-  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 M_AXIS
-
-  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 M_AXIS1
-
-  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 M_AXIS2
-
-  create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 S_AXIS1
-
-  create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 S_AXIS2
-
-  create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 S_AXIS3
-
-
-  # Create pins
-  create_bd_pin -dir I -type clk ACLK
-  create_bd_pin -dir I -type rst ARESETN
-
-  # Create instance: axis_bitflip_0, and set properties
-  set block_name axis_bitflip
-  set block_cell_name axis_bitflip_0
-  if { [catch {set axis_bitflip_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
-     catch {common::send_gid_msg -ssname BD::TCL -id 2095 -severity "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
-     return 1
-   } elseif { $axis_bitflip_0 eq "" } {
-     catch {common::send_gid_msg -ssname BD::TCL -id 2096 -severity "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
-     return 1
-   }
-  
-  # Create instance: axis_ema_0, and set properties
-  set block_name axis_ema
-  set block_cell_name axis_ema_0
-  if { [catch {set axis_ema_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
-     catch {common::send_gid_msg -ssname BD::TCL -id 2095 -severity "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
-     return 1
-   } elseif { $axis_ema_0 eq "" } {
-     catch {common::send_gid_msg -ssname BD::TCL -id 2096 -severity "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
-     return 1
-   }
-  
-  # Create instance: axis_ema_1, and set properties
-  set block_name axis_ema
-  set block_cell_name axis_ema_1
-  if { [catch {set axis_ema_1 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
-     catch {common::send_gid_msg -ssname BD::TCL -id 2095 -severity "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
-     return 1
-   } elseif { $axis_ema_1 eq "" } {
-     catch {common::send_gid_msg -ssname BD::TCL -id 2096 -severity "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
-     return 1
-   }
-  
-  # Create instance: axis_ema_2, and set properties
-  set block_name axis_ema
-  set block_cell_name axis_ema_2
-  if { [catch {set axis_ema_2 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
-     catch {common::send_gid_msg -ssname BD::TCL -id 2095 -severity "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
-     return 1
-   } elseif { $axis_ema_2 eq "" } {
-     catch {common::send_gid_msg -ssname BD::TCL -id 2096 -severity "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
-     return 1
-   }
-  
-  # Create instance: axis_ema_3, and set properties
-  set block_name axis_ema
-  set block_cell_name axis_ema_3
-  if { [catch {set axis_ema_3 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
-     catch {common::send_gid_msg -ssname BD::TCL -id 2095 -severity "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
-     return 1
-   } elseif { $axis_ema_3 eq "" } {
-     catch {common::send_gid_msg -ssname BD::TCL -id 2096 -severity "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
-     return 1
-   }
-  
-  # Create instance: system_ila_0, and set properties
-  set system_ila_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:system_ila:1.1 system_ila_0 ]
-  set_property -dict [ list \
-   CONFIG.C_MON_TYPE {INTERFACE} \
-   CONFIG.C_NUM_MONITOR_SLOTS {2} \
-   CONFIG.C_SLOT_0_APC_EN {0} \
-   CONFIG.C_SLOT_0_AXI_DATA_SEL {1} \
-   CONFIG.C_SLOT_0_AXI_TRIG_SEL {1} \
-   CONFIG.C_SLOT_0_INTF_TYPE {xilinx.com:interface:axis_rtl:1.0} \
-   CONFIG.C_SLOT_1_APC_EN {0} \
-   CONFIG.C_SLOT_1_AXI_DATA_SEL {1} \
-   CONFIG.C_SLOT_1_AXI_TRIG_SEL {1} \
-   CONFIG.C_SLOT_1_INTF_TYPE {xilinx.com:interface:axis_rtl:1.0} \
-   CONFIG.C_SLOT_2_APC_EN {0} \
-   CONFIG.C_SLOT_2_AXI_DATA_SEL {1} \
-   CONFIG.C_SLOT_2_AXI_TRIG_SEL {1} \
-   CONFIG.C_SLOT_2_INTF_TYPE {xilinx.com:interface:axis_rtl:1.0} \
- ] $system_ila_0
-
-  # Create interface connections
-  connect_bd_intf_net -intf_net Conn1 [get_bd_intf_pins M_AXIS] [get_bd_intf_pins axis_ema_3/M_AXIS]
-  connect_bd_intf_net -intf_net Conn2 [get_bd_intf_pins M_AXIS1] [get_bd_intf_pins axis_ema_0/M_AXIS]
-  connect_bd_intf_net -intf_net Conn3 [get_bd_intf_pins M_AXIS2] [get_bd_intf_pins axis_bitflip_0/M_AXIS]
-  connect_bd_intf_net -intf_net [get_bd_intf_nets Conn3] [get_bd_intf_pins M_AXIS2] [get_bd_intf_pins system_ila_0/SLOT_0_AXIS]
-  set_property HDL_ATTRIBUTE.DEBUG {true} [get_bd_intf_nets Conn3]
-  connect_bd_intf_net -intf_net Conn4 [get_bd_intf_pins S_AXIS3] [get_bd_intf_pins axis_ema_1/S_AXIS]
-  connect_bd_intf_net -intf_net Conn5 [get_bd_intf_pins S_AXIS1] [get_bd_intf_pins axis_ema_0/S_AXIS]
-  connect_bd_intf_net -intf_net Conn6 [get_bd_intf_pins S_AXIS2] [get_bd_intf_pins axis_bitflip_0/S_AXIS]
-  connect_bd_intf_net -intf_net [get_bd_intf_nets Conn6] [get_bd_intf_pins S_AXIS2] [get_bd_intf_pins system_ila_0/SLOT_1_AXIS]
-  connect_bd_intf_net -intf_net axis_ema_1_M_AXIS [get_bd_intf_pins axis_ema_1/M_AXIS] [get_bd_intf_pins axis_ema_2/S_AXIS]
-  connect_bd_intf_net -intf_net axis_ema_2_M_AXIS [get_bd_intf_pins axis_ema_2/M_AXIS] [get_bd_intf_pins axis_ema_3/S_AXIS]
-
-  # Create port connections
-  connect_bd_net -net ACLK_1 [get_bd_pins ACLK] [get_bd_pins axis_bitflip_0/ACLK] [get_bd_pins axis_ema_0/ACLK] [get_bd_pins axis_ema_1/ACLK] [get_bd_pins axis_ema_2/ACLK] [get_bd_pins axis_ema_3/ACLK] [get_bd_pins system_ila_0/clk]
-  connect_bd_net -net ARESETN_1 [get_bd_pins ARESETN] [get_bd_pins axis_bitflip_0/ARESETN] [get_bd_pins axis_ema_0/ARESETN] [get_bd_pins axis_ema_1/ARESETN] [get_bd_pins axis_ema_2/ARESETN] [get_bd_pins axis_ema_3/ARESETN] [get_bd_pins system_ila_0/resetn]
-
-  # Restore current instance
-  current_bd_instance $oldCurInst
-}
   variable script_folder
 
   if { $parentCell eq "" } {
@@ -504,9 +385,9 @@ proc create_hier_cell_e315 { parentCell nameHier } {
 
 
   # Create interface ports
-  set DDR_0 [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:ddrx_rtl:1.0 DDR_0 ]
+  set DDR [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:ddrx_rtl:1.0 DDR ]
 
-  set FIXED_IO_0 [ create_bd_intf_port -mode Master -vlnv xilinx.com:display_processing_system7:fixedio_rtl:1.0 FIXED_IO_0 ]
+  set FIXED_IO [ create_bd_intf_port -mode Master -vlnv xilinx.com:display_processing_system7:fixedio_rtl:1.0 FIXED_IO ]
 
 
   # Create ports
@@ -515,6 +396,8 @@ proc create_hier_cell_e315 { parentCell nameHier } {
   set axi_dma_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_dma:7.1 axi_dma_0 ]
   set_property -dict [ list \
    CONFIG.c_include_sg {0} \
+   CONFIG.c_micro_dma {1} \
+   CONFIG.c_sg_include_stscntrl_strm {0} \
    CONFIG.c_single_interface {1} \
  ] $axi_dma_0
 
@@ -522,19 +405,40 @@ proc create_hier_cell_e315 { parentCell nameHier } {
   set axi_dma_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_dma:7.1 axi_dma_1 ]
   set_property -dict [ list \
    CONFIG.c_include_sg {0} \
+   CONFIG.c_micro_dma {1} \
+   CONFIG.c_sg_include_stscntrl_strm {0} \
    CONFIG.c_single_interface {1} \
  ] $axi_dma_1
 
-  # Create instance: axi_dma_2, and set properties
-  set axi_dma_2 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_dma:7.1 axi_dma_2 ]
+  # Create instance: axi_mem_intercon, and set properties
+  set axi_mem_intercon [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 axi_mem_intercon ]
   set_property -dict [ list \
-   CONFIG.c_include_sg {0} \
-   CONFIG.c_single_interface {1} \
- ] $axi_dma_2
+   CONFIG.NUM_MI {1} \
+   CONFIG.NUM_SI {2} \
+ ] $axi_mem_intercon
 
-  # Create instance: e315
-  create_hier_cell_e315 [current_bd_instance .] e315
-
+  # Create instance: axis_bitflip_0, and set properties
+  set block_name axis_bitflip
+  set block_cell_name axis_bitflip_0
+  if { [catch {set axis_bitflip_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2095 -severity "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   } elseif { $axis_bitflip_0 eq "" } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2096 -severity "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   }
+  
+  # Create instance: axis_ema_0, and set properties
+  set block_name axis_ema
+  set block_cell_name axis_ema_0
+  if { [catch {set axis_ema_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2095 -severity "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   } elseif { $axis_ema_0 eq "" } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2096 -severity "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   }
+  
   # Create instance: processing_system7_0, and set properties
   set processing_system7_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 processing_system7_0 ]
   set_property -dict [ list \
@@ -570,12 +474,14 @@ proc create_hier_cell_e315 { parentCell nameHier } {
    CONFIG.PCW_APU_CLK_RATIO_ENABLE {6:2:1} \
    CONFIG.PCW_APU_PERIPHERAL_FREQMHZ {650} \
    CONFIG.PCW_ARMPLL_CTRL_FBDIV {26} \
-   CONFIG.PCW_CAN0_GRP_CLK_ENABLE {0} \
+   CONFIG.PCW_CAN0_BASEADDR {0xE0008000} \
+   CONFIG.PCW_CAN0_HIGHADDR {0xE0008FFF} \
    CONFIG.PCW_CAN0_PERIPHERAL_CLKSRC {External} \
-   CONFIG.PCW_CAN0_PERIPHERAL_ENABLE {0} \
-   CONFIG.PCW_CAN1_GRP_CLK_ENABLE {0} \
+   CONFIG.PCW_CAN0_PERIPHERAL_FREQMHZ {-1} \
+   CONFIG.PCW_CAN1_BASEADDR {0xE0009000} \
+   CONFIG.PCW_CAN1_HIGHADDR {0xE0009FFF} \
    CONFIG.PCW_CAN1_PERIPHERAL_CLKSRC {External} \
-   CONFIG.PCW_CAN1_PERIPHERAL_ENABLE {0} \
+   CONFIG.PCW_CAN1_PERIPHERAL_FREQMHZ {-1} \
    CONFIG.PCW_CAN_PERIPHERAL_CLKSRC {IO PLL} \
    CONFIG.PCW_CAN_PERIPHERAL_DIVISOR0 {1} \
    CONFIG.PCW_CAN_PERIPHERAL_DIVISOR1 {1} \
@@ -585,6 +491,10 @@ proc create_hier_cell_e315 { parentCell nameHier } {
    CONFIG.PCW_CLK1_FREQ {10000000} \
    CONFIG.PCW_CLK2_FREQ {10000000} \
    CONFIG.PCW_CLK3_FREQ {10000000} \
+   CONFIG.PCW_CORE0_FIQ_INTR {0} \
+   CONFIG.PCW_CORE0_IRQ_INTR {0} \
+   CONFIG.PCW_CORE1_FIQ_INTR {0} \
+   CONFIG.PCW_CORE1_IRQ_INTR {0} \
    CONFIG.PCW_CPU_CPU_6X4X_MAX_RANGE {667} \
    CONFIG.PCW_CPU_CPU_PLL_FREQMHZ {1300.000} \
    CONFIG.PCW_CPU_PERIPHERAL_CLKSRC {ARM PLL} \
@@ -623,7 +533,9 @@ proc create_hier_cell_e315 { parentCell nameHier } {
    CONFIG.PCW_ENET0_PERIPHERAL_FREQMHZ {1000 Mbps} \
    CONFIG.PCW_ENET0_RESET_ENABLE {1} \
    CONFIG.PCW_ENET0_RESET_IO {MIO 9} \
+   CONFIG.PCW_ENET1_BASEADDR {0xE000C000} \
    CONFIG.PCW_ENET1_GRP_MDIO_ENABLE {0} \
+   CONFIG.PCW_ENET1_HIGHADDR {0xE000CFFF} \
    CONFIG.PCW_ENET1_PERIPHERAL_CLKSRC {IO PLL} \
    CONFIG.PCW_ENET1_PERIPHERAL_DIVISOR0 {1} \
    CONFIG.PCW_ENET1_PERIPHERAL_DIVISOR1 {1} \
@@ -722,12 +634,6 @@ proc create_hier_cell_e315 { parentCell nameHier } {
    CONFIG.PCW_FPGA_FCLK1_ENABLE {0} \
    CONFIG.PCW_FPGA_FCLK2_ENABLE {0} \
    CONFIG.PCW_FPGA_FCLK3_ENABLE {0} \
-   CONFIG.PCW_GP0_EN_MODIFIABLE_TXN {1} \
-   CONFIG.PCW_GP0_NUM_READ_THREADS {4} \
-   CONFIG.PCW_GP0_NUM_WRITE_THREADS {4} \
-   CONFIG.PCW_GP1_EN_MODIFIABLE_TXN {1} \
-   CONFIG.PCW_GP1_NUM_READ_THREADS {4} \
-   CONFIG.PCW_GP1_NUM_WRITE_THREADS {4} \
    CONFIG.PCW_GPIO_BASEADDR {0xE000A000} \
    CONFIG.PCW_GPIO_EMIO_GPIO_ENABLE {0} \
    CONFIG.PCW_GPIO_EMIO_GPIO_WIDTH {64} \
@@ -735,19 +641,21 @@ proc create_hier_cell_e315 { parentCell nameHier } {
    CONFIG.PCW_GPIO_MIO_GPIO_ENABLE {1} \
    CONFIG.PCW_GPIO_MIO_GPIO_IO {MIO} \
    CONFIG.PCW_GPIO_PERIPHERAL_ENABLE {0} \
-   CONFIG.PCW_I2C0_GRP_INT_ENABLE {0} \
-   CONFIG.PCW_I2C0_PERIPHERAL_ENABLE {0} \
+   CONFIG.PCW_I2C0_BASEADDR {0xE0004000} \
+   CONFIG.PCW_I2C0_HIGHADDR {0xE0004FFF} \
    CONFIG.PCW_I2C0_RESET_ENABLE {0} \
-   CONFIG.PCW_I2C1_GRP_INT_ENABLE {0} \
-   CONFIG.PCW_I2C1_PERIPHERAL_ENABLE {0} \
+   CONFIG.PCW_I2C1_BASEADDR {0xE0005000} \
+   CONFIG.PCW_I2C1_HIGHADDR {0xE0005FFF} \
    CONFIG.PCW_I2C1_RESET_ENABLE {0} \
    CONFIG.PCW_I2C_PERIPHERAL_FREQMHZ {25} \
-   CONFIG.PCW_I2C_RESET_ENABLE {0} \
+   CONFIG.PCW_I2C_RESET_ENABLE {1} \
    CONFIG.PCW_I2C_RESET_POLARITY {Active Low} \
    CONFIG.PCW_IMPORT_BOARD_PRESET {None} \
    CONFIG.PCW_INCLUDE_ACP_TRANS_CHECK {0} \
+   CONFIG.PCW_INCLUDE_TRACE_BUFFER {0} \
    CONFIG.PCW_IOPLL_CTRL_FBDIV {20} \
    CONFIG.PCW_IO_IO_PLL_FREQMHZ {1000.000} \
+   CONFIG.PCW_IRQ_F2P_INTR {0} \
    CONFIG.PCW_IRQ_F2P_MODE {DIRECT} \
    CONFIG.PCW_MIO_0_DIRECTION {inout} \
    CONFIG.PCW_MIO_0_IOTYPE {LVCMOS 3.3V} \
@@ -999,6 +907,10 @@ proc create_hier_cell_e315 { parentCell nameHier } {
    CONFIG.PCW_M_AXI_GP0_ID_WIDTH {12} \
    CONFIG.PCW_M_AXI_GP0_SUPPORT_NARROW_BURST {0} \
    CONFIG.PCW_M_AXI_GP0_THREAD_ID_WIDTH {12} \
+   CONFIG.PCW_M_AXI_GP1_ENABLE_STATIC_REMAP {0} \
+   CONFIG.PCW_M_AXI_GP1_ID_WIDTH {12} \
+   CONFIG.PCW_M_AXI_GP1_SUPPORT_NARROW_BURST {0} \
+   CONFIG.PCW_M_AXI_GP1_THREAD_ID_WIDTH {12} \
    CONFIG.PCW_NAND_CYCLES_T_AR {1} \
    CONFIG.PCW_NAND_CYCLES_T_CLR {1} \
    CONFIG.PCW_NAND_CYCLES_T_RC {11} \
@@ -1044,6 +956,33 @@ proc create_hier_cell_e315 { parentCell nameHier } {
    CONFIG.PCW_NOR_SRAM_CS1_T_WP {1} \
    CONFIG.PCW_NOR_SRAM_CS1_WE_TIME {0} \
    CONFIG.PCW_OVERRIDE_BASIC_CLOCK {0} \
+   CONFIG.PCW_P2F_CAN0_INTR {0} \
+   CONFIG.PCW_P2F_CAN1_INTR {0} \
+   CONFIG.PCW_P2F_CTI_INTR {0} \
+   CONFIG.PCW_P2F_DMAC0_INTR {0} \
+   CONFIG.PCW_P2F_DMAC1_INTR {0} \
+   CONFIG.PCW_P2F_DMAC2_INTR {0} \
+   CONFIG.PCW_P2F_DMAC3_INTR {0} \
+   CONFIG.PCW_P2F_DMAC4_INTR {0} \
+   CONFIG.PCW_P2F_DMAC5_INTR {0} \
+   CONFIG.PCW_P2F_DMAC6_INTR {0} \
+   CONFIG.PCW_P2F_DMAC7_INTR {0} \
+   CONFIG.PCW_P2F_DMAC_ABORT_INTR {0} \
+   CONFIG.PCW_P2F_ENET0_INTR {0} \
+   CONFIG.PCW_P2F_ENET1_INTR {0} \
+   CONFIG.PCW_P2F_GPIO_INTR {0} \
+   CONFIG.PCW_P2F_I2C0_INTR {0} \
+   CONFIG.PCW_P2F_I2C1_INTR {0} \
+   CONFIG.PCW_P2F_QSPI_INTR {0} \
+   CONFIG.PCW_P2F_SDIO0_INTR {0} \
+   CONFIG.PCW_P2F_SDIO1_INTR {0} \
+   CONFIG.PCW_P2F_SMC_INTR {0} \
+   CONFIG.PCW_P2F_SPI0_INTR {0} \
+   CONFIG.PCW_P2F_SPI1_INTR {0} \
+   CONFIG.PCW_P2F_UART0_INTR {0} \
+   CONFIG.PCW_P2F_UART1_INTR {0} \
+   CONFIG.PCW_P2F_USB0_INTR {0} \
+   CONFIG.PCW_P2F_USB1_INTR {0} \
    CONFIG.PCW_PACKAGE_DDR_BOARD_DELAY0 {0.223} \
    CONFIG.PCW_PACKAGE_DDR_BOARD_DELAY1 {0.212} \
    CONFIG.PCW_PACKAGE_DDR_BOARD_DELAY2 {0.085} \
@@ -1056,8 +995,7 @@ proc create_hier_cell_e315 { parentCell nameHier } {
    CONFIG.PCW_PCAP_PERIPHERAL_CLKSRC {IO PLL} \
    CONFIG.PCW_PCAP_PERIPHERAL_DIVISOR0 {5} \
    CONFIG.PCW_PCAP_PERIPHERAL_FREQMHZ {200} \
-   CONFIG.PCW_PERIPHERAL_BOARD_PRESET {part0} \
-   CONFIG.PCW_PJTAG_PERIPHERAL_ENABLE {0} \
+   CONFIG.PCW_PERIPHERAL_BOARD_PRESET {None} \
    CONFIG.PCW_PLL_BYPASSMODE_ENABLE {0} \
    CONFIG.PCW_PRESET_BANK0_VOLTAGE {LVCMOS 3.3V} \
    CONFIG.PCW_PRESET_BANK1_VOLTAGE {LVCMOS 1.8V} \
@@ -1086,6 +1024,8 @@ proc create_hier_cell_e315 { parentCell nameHier } {
    CONFIG.PCW_SD1_PERIPHERAL_ENABLE {0} \
    CONFIG.PCW_SDIO0_BASEADDR {0xE0100000} \
    CONFIG.PCW_SDIO0_HIGHADDR {0xE0100FFF} \
+   CONFIG.PCW_SDIO1_BASEADDR {0xE0101000} \
+   CONFIG.PCW_SDIO1_HIGHADDR {0xE0101FFF} \
    CONFIG.PCW_SDIO_PERIPHERAL_CLKSRC {IO PLL} \
    CONFIG.PCW_SDIO_PERIPHERAL_DIVISOR0 {20} \
    CONFIG.PCW_SDIO_PERIPHERAL_FREQMHZ {50} \
@@ -1102,33 +1042,42 @@ proc create_hier_cell_e315 { parentCell nameHier } {
    CONFIG.PCW_SMC_PERIPHERAL_DIVISOR0 {1} \
    CONFIG.PCW_SMC_PERIPHERAL_FREQMHZ {100} \
    CONFIG.PCW_SMC_PERIPHERAL_VALID {0} \
+   CONFIG.PCW_SPI0_BASEADDR {0xE0006000} \
    CONFIG.PCW_SPI0_GRP_SS0_ENABLE {0} \
    CONFIG.PCW_SPI0_GRP_SS1_ENABLE {0} \
    CONFIG.PCW_SPI0_GRP_SS2_ENABLE {0} \
+   CONFIG.PCW_SPI0_HIGHADDR {0xE0006FFF} \
    CONFIG.PCW_SPI0_PERIPHERAL_ENABLE {0} \
+   CONFIG.PCW_SPI1_BASEADDR {0xE0007000} \
    CONFIG.PCW_SPI1_GRP_SS0_ENABLE {0} \
    CONFIG.PCW_SPI1_GRP_SS1_ENABLE {0} \
    CONFIG.PCW_SPI1_GRP_SS2_ENABLE {0} \
+   CONFIG.PCW_SPI1_HIGHADDR {0xE0007FFF} \
    CONFIG.PCW_SPI1_PERIPHERAL_ENABLE {0} \
    CONFIG.PCW_SPI_PERIPHERAL_CLKSRC {IO PLL} \
    CONFIG.PCW_SPI_PERIPHERAL_DIVISOR0 {1} \
    CONFIG.PCW_SPI_PERIPHERAL_FREQMHZ {166.666666} \
    CONFIG.PCW_SPI_PERIPHERAL_VALID {0} \
+   CONFIG.PCW_S_AXI_ACP_ARUSER_VAL {31} \
+   CONFIG.PCW_S_AXI_ACP_AWUSER_VAL {31} \
+   CONFIG.PCW_S_AXI_ACP_ID_WIDTH {3} \
+   CONFIG.PCW_S_AXI_GP0_ID_WIDTH {6} \
+   CONFIG.PCW_S_AXI_GP1_ID_WIDTH {6} \
    CONFIG.PCW_S_AXI_HP0_DATA_WIDTH {64} \
    CONFIG.PCW_S_AXI_HP0_ID_WIDTH {6} \
    CONFIG.PCW_S_AXI_HP1_DATA_WIDTH {64} \
+   CONFIG.PCW_S_AXI_HP1_ID_WIDTH {6} \
    CONFIG.PCW_S_AXI_HP2_DATA_WIDTH {64} \
+   CONFIG.PCW_S_AXI_HP2_ID_WIDTH {6} \
    CONFIG.PCW_S_AXI_HP3_DATA_WIDTH {64} \
+   CONFIG.PCW_S_AXI_HP3_ID_WIDTH {6} \
    CONFIG.PCW_TPIU_PERIPHERAL_CLKSRC {External} \
    CONFIG.PCW_TPIU_PERIPHERAL_DIVISOR0 {1} \
    CONFIG.PCW_TPIU_PERIPHERAL_FREQMHZ {200} \
-   CONFIG.PCW_TRACE_GRP_16BIT_ENABLE {0} \
-   CONFIG.PCW_TRACE_GRP_2BIT_ENABLE {0} \
-   CONFIG.PCW_TRACE_GRP_32BIT_ENABLE {0} \
-   CONFIG.PCW_TRACE_GRP_4BIT_ENABLE {0} \
-   CONFIG.PCW_TRACE_GRP_8BIT_ENABLE {0} \
-   CONFIG.PCW_TRACE_INTERNAL_WIDTH {2} \
-   CONFIG.PCW_TRACE_PERIPHERAL_ENABLE {0} \
+   CONFIG.PCW_TRACE_BUFFER_CLOCK_DELAY {12} \
+   CONFIG.PCW_TRACE_BUFFER_FIFO_SIZE {128} \
+   CONFIG.PCW_TRACE_PIPELINE_WIDTH {8} \
+   CONFIG.PCW_TTC0_BASEADDR {0xE0104000} \
    CONFIG.PCW_TTC0_CLK0_PERIPHERAL_CLKSRC {CPU_1X} \
    CONFIG.PCW_TTC0_CLK0_PERIPHERAL_DIVISOR0 {1} \
    CONFIG.PCW_TTC0_CLK0_PERIPHERAL_FREQMHZ {133.333333} \
@@ -1138,7 +1087,8 @@ proc create_hier_cell_e315 { parentCell nameHier } {
    CONFIG.PCW_TTC0_CLK2_PERIPHERAL_CLKSRC {CPU_1X} \
    CONFIG.PCW_TTC0_CLK2_PERIPHERAL_DIVISOR0 {1} \
    CONFIG.PCW_TTC0_CLK2_PERIPHERAL_FREQMHZ {133.333333} \
-   CONFIG.PCW_TTC0_PERIPHERAL_ENABLE {0} \
+   CONFIG.PCW_TTC0_HIGHADDR {0xE0104fff} \
+   CONFIG.PCW_TTC1_BASEADDR {0xE0105000} \
    CONFIG.PCW_TTC1_CLK0_PERIPHERAL_CLKSRC {CPU_1X} \
    CONFIG.PCW_TTC1_CLK0_PERIPHERAL_DIVISOR0 {1} \
    CONFIG.PCW_TTC1_CLK0_PERIPHERAL_FREQMHZ {133.333333} \
@@ -1148,7 +1098,7 @@ proc create_hier_cell_e315 { parentCell nameHier } {
    CONFIG.PCW_TTC1_CLK2_PERIPHERAL_CLKSRC {CPU_1X} \
    CONFIG.PCW_TTC1_CLK2_PERIPHERAL_DIVISOR0 {1} \
    CONFIG.PCW_TTC1_CLK2_PERIPHERAL_FREQMHZ {133.333333} \
-   CONFIG.PCW_TTC1_PERIPHERAL_ENABLE {0} \
+   CONFIG.PCW_TTC1_HIGHADDR {0xE0105fff} \
    CONFIG.PCW_TTC_PERIPHERAL_FREQMHZ {50} \
    CONFIG.PCW_UART0_BASEADDR {0xE0000000} \
    CONFIG.PCW_UART0_BAUD_RATE {115200} \
@@ -1156,8 +1106,10 @@ proc create_hier_cell_e315 { parentCell nameHier } {
    CONFIG.PCW_UART0_HIGHADDR {0xE0000FFF} \
    CONFIG.PCW_UART0_PERIPHERAL_ENABLE {1} \
    CONFIG.PCW_UART0_UART0_IO {MIO 14 .. 15} \
+   CONFIG.PCW_UART1_BASEADDR {0xE0001000} \
    CONFIG.PCW_UART1_BAUD_RATE {115200} \
    CONFIG.PCW_UART1_GRP_FULL_ENABLE {0} \
+   CONFIG.PCW_UART1_HIGHADDR {0xE0001FFF} \
    CONFIG.PCW_UART1_PERIPHERAL_ENABLE {0} \
    CONFIG.PCW_UART_PERIPHERAL_CLKSRC {IO PLL} \
    CONFIG.PCW_UART_PERIPHERAL_DIVISOR0 {10} \
@@ -1244,6 +1196,8 @@ proc create_hier_cell_e315 { parentCell nameHier } {
    CONFIG.PCW_USB0_RESET_ENABLE {1} \
    CONFIG.PCW_USB0_RESET_IO {MIO 46} \
    CONFIG.PCW_USB0_USB0_IO {MIO 28 .. 39} \
+   CONFIG.PCW_USB1_BASEADDR {0xE0103000} \
+   CONFIG.PCW_USB1_HIGHADDR {0xE0103fff} \
    CONFIG.PCW_USB1_PERIPHERAL_ENABLE {0} \
    CONFIG.PCW_USB1_PERIPHERAL_FREQMHZ {60} \
    CONFIG.PCW_USB1_RESET_ENABLE {0} \
@@ -1257,11 +1211,13 @@ proc create_hier_cell_e315 { parentCell nameHier } {
    CONFIG.PCW_USE_CR_FABRIC {1} \
    CONFIG.PCW_USE_DDR_BYPASS {0} \
    CONFIG.PCW_USE_DEBUG {0} \
+   CONFIG.PCW_USE_DEFAULT_ACP_USER_VAL {0} \
    CONFIG.PCW_USE_DMA0 {0} \
    CONFIG.PCW_USE_DMA1 {0} \
    CONFIG.PCW_USE_DMA2 {0} \
    CONFIG.PCW_USE_DMA3 {0} \
    CONFIG.PCW_USE_EXPANDED_IOP {0} \
+   CONFIG.PCW_USE_EXPANDED_PS_SLCR_REGISTERS {0} \
    CONFIG.PCW_USE_FABRIC_INTERRUPT {0} \
    CONFIG.PCW_USE_HIGH_OCM {0} \
    CONFIG.PCW_USE_M_AXI_GP0 {1} \
@@ -1276,61 +1232,104 @@ proc create_hier_cell_e315 { parentCell nameHier } {
    CONFIG.PCW_USE_S_AXI_HP2 {0} \
    CONFIG.PCW_USE_S_AXI_HP3 {0} \
    CONFIG.PCW_USE_TRACE {0} \
+   CONFIG.PCW_USE_TRACE_DATA_EDGE_DETECTOR {0} \
    CONFIG.PCW_VALUE_SILVERSION {3} \
    CONFIG.PCW_WDT_PERIPHERAL_CLKSRC {CPU_1X} \
    CONFIG.PCW_WDT_PERIPHERAL_DIVISOR0 {1} \
-   CONFIG.PCW_WDT_PERIPHERAL_ENABLE {0} \
    CONFIG.PCW_WDT_PERIPHERAL_FREQMHZ {133.333333} \
  ] $processing_system7_0
 
   # Create instance: ps7_0_axi_periph, and set properties
   set ps7_0_axi_periph [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 ps7_0_axi_periph ]
   set_property -dict [ list \
-   CONFIG.NUM_MI {3} \
+   CONFIG.NUM_MI {2} \
  ] $ps7_0_axi_periph
 
-  # Create instance: rst_ps7_0_50M, and set properties
-  set rst_ps7_0_50M [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 rst_ps7_0_50M ]
+  # Create instance: rst_ps7_0_100M, and set properties
+  set rst_ps7_0_100M [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 rst_ps7_0_100M ]
 
-  # Create instance: smartconnect_0, and set properties
-  set smartconnect_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 smartconnect_0 ]
+  # Create instance: system_ila_0, and set properties
+  set system_ila_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:system_ila:1.1 system_ila_0 ]
   set_property -dict [ list \
-   CONFIG.NUM_SI {3} \
- ] $smartconnect_0
+   CONFIG.C_MON_TYPE {INTERFACE} \
+   CONFIG.C_NUM_MONITOR_SLOTS {2} \
+   CONFIG.C_SLOT_0_APC_EN {0} \
+   CONFIG.C_SLOT_0_AXI_DATA_SEL {1} \
+   CONFIG.C_SLOT_0_AXI_TRIG_SEL {1} \
+   CONFIG.C_SLOT_0_INTF_TYPE {xilinx.com:interface:axis_rtl:1.0} \
+   CONFIG.C_SLOT_1_APC_EN {0} \
+   CONFIG.C_SLOT_1_AXI_DATA_SEL {1} \
+   CONFIG.C_SLOT_1_AXI_TRIG_SEL {1} \
+   CONFIG.C_SLOT_1_INTF_TYPE {xilinx.com:interface:axis_rtl:1.0} \
+ ] $system_ila_0
 
   # Create interface connections
-  connect_bd_intf_net -intf_net S_AXIS1_1 [get_bd_intf_pins axi_dma_1/M_AXIS_MM2S] [get_bd_intf_pins e315/S_AXIS1]
-  connect_bd_intf_net -intf_net S_AXIS2_1 [get_bd_intf_pins axi_dma_0/M_AXIS_MM2S] [get_bd_intf_pins e315/S_AXIS2]
-  set_property HDL_ATTRIBUTE.DEBUG {true} [get_bd_intf_nets S_AXIS2_1]
-  connect_bd_intf_net -intf_net axi_dma_0_M_AXI [get_bd_intf_pins axi_dma_0/M_AXI] [get_bd_intf_pins smartconnect_0/S00_AXI]
-  connect_bd_intf_net -intf_net axi_dma_1_M_AXI [get_bd_intf_pins axi_dma_1/M_AXI] [get_bd_intf_pins smartconnect_0/S01_AXI]
-  connect_bd_intf_net -intf_net axi_dma_2_M_AXI [get_bd_intf_pins axi_dma_2/M_AXI] [get_bd_intf_pins smartconnect_0/S02_AXI]
-  connect_bd_intf_net -intf_net axi_dma_2_M_AXIS_MM2S [get_bd_intf_pins axi_dma_2/M_AXIS_MM2S] [get_bd_intf_pins e315/S_AXIS3]
-  connect_bd_intf_net -intf_net e315_M_AXIS [get_bd_intf_pins axi_dma_2/S_AXIS_S2MM] [get_bd_intf_pins e315/M_AXIS]
-  connect_bd_intf_net -intf_net e315_M_AXIS1 [get_bd_intf_pins axi_dma_1/S_AXIS_S2MM] [get_bd_intf_pins e315/M_AXIS1]
-  connect_bd_intf_net -intf_net e315_M_AXIS2 [get_bd_intf_pins axi_dma_0/S_AXIS_S2MM] [get_bd_intf_pins e315/M_AXIS2]
-  set_property HDL_ATTRIBUTE.DEBUG {true} [get_bd_intf_nets e315_M_AXIS2]
-  connect_bd_intf_net -intf_net processing_system7_0_DDR [get_bd_intf_ports DDR_0] [get_bd_intf_pins processing_system7_0/DDR]
-  connect_bd_intf_net -intf_net processing_system7_0_FIXED_IO [get_bd_intf_ports FIXED_IO_0] [get_bd_intf_pins processing_system7_0/FIXED_IO]
+  connect_bd_intf_net -intf_net S00_AXI_1 [get_bd_intf_pins axi_dma_0/M_AXI] [get_bd_intf_pins axi_mem_intercon/S00_AXI]
+  connect_bd_intf_net -intf_net axi_dma_0_M_AXIS_MM2S [get_bd_intf_pins axi_dma_0/M_AXIS_MM2S] [get_bd_intf_pins axis_bitflip_0/S_AXIS]
+connect_bd_intf_net -intf_net [get_bd_intf_nets axi_dma_0_M_AXIS_MM2S] [get_bd_intf_pins axi_dma_0/M_AXIS_MM2S] [get_bd_intf_pins system_ila_0/SLOT_0_AXIS]
+  set_property HDL_ATTRIBUTE.DEBUG {true} [get_bd_intf_nets axi_dma_0_M_AXIS_MM2S]
+  connect_bd_intf_net -intf_net axi_dma_1_M_AXI [get_bd_intf_pins axi_dma_1/M_AXI] [get_bd_intf_pins axi_mem_intercon/S01_AXI]
+  connect_bd_intf_net -intf_net axi_dma_1_M_AXIS_MM2S [get_bd_intf_pins axi_dma_1/M_AXIS_MM2S] [get_bd_intf_pins axis_ema_0/S_AXIS]
+  connect_bd_intf_net -intf_net axi_mem_intercon_M00_AXI [get_bd_intf_pins axi_mem_intercon/M00_AXI] [get_bd_intf_pins processing_system7_0/S_AXI_HP0]
+  connect_bd_intf_net -intf_net axis_bitflip_0_M_AXIS [get_bd_intf_pins axi_dma_0/S_AXIS_S2MM] [get_bd_intf_pins axis_bitflip_0/M_AXIS]
+connect_bd_intf_net -intf_net [get_bd_intf_nets axis_bitflip_0_M_AXIS] [get_bd_intf_pins axis_bitflip_0/M_AXIS] [get_bd_intf_pins system_ila_0/SLOT_1_AXIS]
+  set_property HDL_ATTRIBUTE.DEBUG {true} [get_bd_intf_nets axis_bitflip_0_M_AXIS]
+  connect_bd_intf_net -intf_net axis_ema_0_M_AXIS [get_bd_intf_pins axi_dma_1/S_AXIS_S2MM] [get_bd_intf_pins axis_ema_0/M_AXIS]
+  connect_bd_intf_net -intf_net processing_system7_0_DDR [get_bd_intf_ports DDR] [get_bd_intf_pins processing_system7_0/DDR]
+  connect_bd_intf_net -intf_net processing_system7_0_FIXED_IO [get_bd_intf_ports FIXED_IO] [get_bd_intf_pins processing_system7_0/FIXED_IO]
   connect_bd_intf_net -intf_net processing_system7_0_M_AXI_GP0 [get_bd_intf_pins processing_system7_0/M_AXI_GP0] [get_bd_intf_pins ps7_0_axi_periph/S00_AXI]
   connect_bd_intf_net -intf_net ps7_0_axi_periph_M00_AXI [get_bd_intf_pins axi_dma_0/S_AXI_LITE] [get_bd_intf_pins ps7_0_axi_periph/M00_AXI]
   connect_bd_intf_net -intf_net ps7_0_axi_periph_M01_AXI [get_bd_intf_pins axi_dma_1/S_AXI_LITE] [get_bd_intf_pins ps7_0_axi_periph/M01_AXI]
-  connect_bd_intf_net -intf_net ps7_0_axi_periph_M02_AXI [get_bd_intf_pins axi_dma_2/S_AXI_LITE] [get_bd_intf_pins ps7_0_axi_periph/M02_AXI]
-  connect_bd_intf_net -intf_net smartconnect_0_M00_AXI [get_bd_intf_pins processing_system7_0/S_AXI_HP0] [get_bd_intf_pins smartconnect_0/M00_AXI]
 
   # Create port connections
-  connect_bd_net -net ARESETN_1 [get_bd_pins axi_dma_0/axi_resetn] [get_bd_pins axi_dma_1/axi_resetn] [get_bd_pins axi_dma_2/axi_resetn] [get_bd_pins e315/ARESETN] [get_bd_pins ps7_0_axi_periph/ARESETN] [get_bd_pins ps7_0_axi_periph/M00_ARESETN] [get_bd_pins ps7_0_axi_periph/M01_ARESETN] [get_bd_pins ps7_0_axi_periph/M02_ARESETN] [get_bd_pins ps7_0_axi_periph/S00_ARESETN] [get_bd_pins rst_ps7_0_50M/peripheral_aresetn]
-  connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_pins axi_dma_0/m_axi_mm2s_aclk] [get_bd_pins axi_dma_0/m_axi_s2mm_aclk] [get_bd_pins axi_dma_0/s_axi_lite_aclk] [get_bd_pins axi_dma_1/m_axi_mm2s_aclk] [get_bd_pins axi_dma_1/m_axi_s2mm_aclk] [get_bd_pins axi_dma_1/s_axi_lite_aclk] [get_bd_pins axi_dma_2/m_axi_mm2s_aclk] [get_bd_pins axi_dma_2/m_axi_s2mm_aclk] [get_bd_pins axi_dma_2/s_axi_lite_aclk] [get_bd_pins e315/ACLK] [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] [get_bd_pins processing_system7_0/S_AXI_HP0_ACLK] [get_bd_pins ps7_0_axi_periph/ACLK] [get_bd_pins ps7_0_axi_periph/M00_ACLK] [get_bd_pins ps7_0_axi_periph/M01_ACLK] [get_bd_pins ps7_0_axi_periph/M02_ACLK] [get_bd_pins ps7_0_axi_periph/S00_ACLK] [get_bd_pins rst_ps7_0_50M/slowest_sync_clk] [get_bd_pins smartconnect_0/aclk]
-  connect_bd_net -net processing_system7_0_FCLK_RESET0_N [get_bd_pins processing_system7_0/FCLK_RESET0_N] [get_bd_pins rst_ps7_0_50M/ext_reset_in]
+  connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_pins axi_dma_0/m_axi_mm2s_aclk] [get_bd_pins axi_dma_0/m_axi_s2mm_aclk] [get_bd_pins axi_dma_0/s_axi_lite_aclk] [get_bd_pins axi_dma_1/m_axi_mm2s_aclk] [get_bd_pins axi_dma_1/m_axi_s2mm_aclk] [get_bd_pins axi_dma_1/s_axi_lite_aclk] [get_bd_pins axi_mem_intercon/ACLK] [get_bd_pins axi_mem_intercon/M00_ACLK] [get_bd_pins axi_mem_intercon/S00_ACLK] [get_bd_pins axi_mem_intercon/S01_ACLK] [get_bd_pins axis_bitflip_0/ACLK] [get_bd_pins axis_ema_0/ACLK] [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] [get_bd_pins processing_system7_0/S_AXI_HP0_ACLK] [get_bd_pins ps7_0_axi_periph/ACLK] [get_bd_pins ps7_0_axi_periph/M00_ACLK] [get_bd_pins ps7_0_axi_periph/M01_ACLK] [get_bd_pins ps7_0_axi_periph/S00_ACLK] [get_bd_pins rst_ps7_0_100M/slowest_sync_clk] [get_bd_pins system_ila_0/clk]
+  connect_bd_net -net processing_system7_0_FCLK_RESET0_N [get_bd_pins processing_system7_0/FCLK_RESET0_N] [get_bd_pins rst_ps7_0_100M/ext_reset_in]
+  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins axi_dma_0/axi_resetn] [get_bd_pins axi_dma_1/axi_resetn] [get_bd_pins axi_mem_intercon/ARESETN] [get_bd_pins axi_mem_intercon/M00_ARESETN] [get_bd_pins axi_mem_intercon/S00_ARESETN] [get_bd_pins axi_mem_intercon/S01_ARESETN] [get_bd_pins axis_bitflip_0/ARESETN] [get_bd_pins axis_ema_0/ARESETN] [get_bd_pins ps7_0_axi_periph/ARESETN] [get_bd_pins ps7_0_axi_periph/M00_ARESETN] [get_bd_pins ps7_0_axi_periph/M01_ARESETN] [get_bd_pins ps7_0_axi_periph/S00_ARESETN] [get_bd_pins rst_ps7_0_100M/peripheral_aresetn] [get_bd_pins system_ila_0/resetn]
 
   # Create address segments
   assign_bd_address -offset 0x00000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces axi_dma_0/Data] [get_bd_addr_segs processing_system7_0/S_AXI_HP0/HP0_DDR_LOWOCM] -force
   assign_bd_address -offset 0x00000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces axi_dma_1/Data] [get_bd_addr_segs processing_system7_0/S_AXI_HP0/HP0_DDR_LOWOCM] -force
-  assign_bd_address -offset 0x00000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces axi_dma_2/Data] [get_bd_addr_segs processing_system7_0/S_AXI_HP0/HP0_DDR_LOWOCM] -force
   assign_bd_address -offset 0x40400000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs axi_dma_0/S_AXI_LITE/Reg] -force
   assign_bd_address -offset 0x40410000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs axi_dma_1/S_AXI_LITE/Reg] -force
-  assign_bd_address -offset 0x40420000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs axi_dma_2/S_AXI_LITE/Reg] -force
 
+  # Perform GUI Layout
+  regenerate_bd_layout -layout_string {
+   "ActiveEmotionalView":"Default View",
+   "Default View_ScaleFactor":"0.816092",
+   "Default View_TopLeft":"-37,0",
+   "ExpandedHierarchyInLayout":"",
+   "guistr":"# # String gsaved with Nlview 7.0r4  2019-12-20 bk=1.5203 VDI=41 GEI=36 GUI=JA:10.0 TLS
+#  -string -flagsOSRD
+preplace port DDR -pg 1 -lvl 7 -x 2180 -y 380 -defaultsOSRD
+preplace port FIXED_IO -pg 1 -lvl 7 -x 2180 -y 400 -defaultsOSRD
+preplace inst processing_system7_0 -pg 1 -lvl 5 -x 1730 -y 430 -defaultsOSRD
+preplace inst axis_bitflip_0 -pg 1 -lvl 2 -x 570 -y 90 -defaultsOSRD
+preplace inst axi_dma_0 -pg 1 -lvl 3 -x 960 -y 120 -defaultsOSRD
+preplace inst ps7_0_axi_periph -pg 1 -lvl 2 -x 570 -y 690 -defaultsOSRD
+preplace inst rst_ps7_0_100M -pg 1 -lvl 1 -x 200 -y 760 -defaultsOSRD
+preplace inst axi_mem_intercon -pg 1 -lvl 4 -x 1350 -y 700 -defaultsOSRD
+preplace inst axis_ema_0 -pg 1 -lvl 2 -x 570 -y 410 -defaultsOSRD
+preplace inst axi_dma_1 -pg 1 -lvl 3 -x 960 -y 340 -defaultsOSRD
+preplace inst system_ila_0 -pg 1 -lvl 6 -x 2060 -y 80 -defaultsOSRD
+preplace netloc processing_system7_0_FCLK_CLK0 1 0 6 20 660 370 170 730 500 1150 500 1500 540 1940
+preplace netloc processing_system7_0_FCLK_RESET0_N 1 0 6 20 860 NJ 860 NJ 860 NJ 860 NJ 860 1930
+preplace netloc rst_ps7_0_100M_peripheral_aresetn 1 1 5 380 180 750 450 1160 110 N 110 N
+preplace netloc axi_dma_1_M_AXI 1 3 1 1130 290n
+preplace netloc ps7_0_axi_periph_M00_AXI 1 2 1 710 70n
+preplace netloc S00_AXI_1 1 3 1 1140 70n
+preplace netloc axi_dma_0_M_AXIS_MM2S 1 1 5 370 0 NJ 0 1120 50 N 50 N
+preplace netloc ps7_0_axi_periph_M01_AXI 1 2 1 740 290n
+preplace netloc axis_ema_0_M_AXIS 1 2 1 720 310n
+preplace netloc axi_dma_1_M_AXIS_MM2S 1 1 3 400 490 NJ 490 1120
+preplace netloc processing_system7_0_M_AXI_GP0 1 1 5 390 230 NJ 230 NJ 230 NJ 230 1930
+preplace netloc axis_bitflip_0_M_AXIS 1 2 4 750 10 N 10 N 10 1940
+preplace netloc axi_mem_intercon_M00_AXI 1 4 1 1490 420n
+preplace netloc processing_system7_0_DDR 1 5 2 NJ 380 N
+preplace netloc processing_system7_0_FIXED_IO 1 5 2 NJ 400 N
+levelinfo -pg 1 0 200 570 960 1350 1730 2060 2180
+pagesize -pg 1 -db -bbox -sgen 0 -10 2290 870
+"
+}
 
   # Restore current instance
   current_bd_instance $oldCurInst
@@ -1348,179 +1347,8 @@ set_property SYNTH_CHECKPOINT_MODE "Hierarchical" [get_files design_fpga.bd ]
 # Create wrapper file for design_fpga.bd
 make_wrapper -files [get_files design_fpga.bd] -import -top
 
-if { [get_files axis_ema.sv] == "" } {
-  import_files -quiet -fileset sources_1 /home/lukefahr/e315/P3_EMA/src/vsrc/axis_ema.sv
-}
-if { [get_files axis_ema.v] == "" } {
-  import_files -quiet -fileset sources_1 /home/lukefahr/e315/P3_EMA/src/vsrc/axis_ema.v
-}
-
-
-# Proc to create BD bd_ema
-proc cr_bd_bd_ema { parentCell } {
-# The design that will be created by this Tcl proc contains the following 
-# module references:
-# axis_ema
-
-
-
-  # CHANGE DESIGN NAME HERE
-  set design_name bd_ema
-
-  common::send_gid_msg -ssname BD::TCL -id 2010 -severity "INFO" "Currently there is no design <$design_name> in project, so creating one..."
-
-  create_bd_design $design_name
-
-  set bCheckIPsPassed 1
-  ##################################################################
-  # CHECK IPs
-  ##################################################################
-  set bCheckIPs 1
-  if { $bCheckIPs == 1 } {
-     set list_check_ips "\ 
-  xilinx.com:ip:axi4stream_vip:1.1\
-  "
-
-   set list_ips_missing ""
-   common::send_gid_msg -ssname BD::TCL -id 2011 -severity "INFO" "Checking if the following IPs exist in the project's IP catalog: $list_check_ips ."
-
-   foreach ip_vlnv $list_check_ips {
-      set ip_obj [get_ipdefs -all $ip_vlnv]
-      if { $ip_obj eq "" } {
-         lappend list_ips_missing $ip_vlnv
-      }
-   }
-
-   if { $list_ips_missing ne "" } {
-      catch {common::send_gid_msg -ssname BD::TCL -id 2012 -severity "ERROR" "The following IPs are not found in the IP Catalog:\n  $list_ips_missing\n\nResolution: Please add the repository containing the IP(s) to the project." }
-      set bCheckIPsPassed 0
-   }
-
-  }
-
-  ##################################################################
-  # CHECK Modules
-  ##################################################################
-  set bCheckModules 1
-  if { $bCheckModules == 1 } {
-     set list_check_mods "\ 
-  axis_ema\
-  "
-
-   set list_mods_missing ""
-   common::send_gid_msg -ssname BD::TCL -id 2020 -severity "INFO" "Checking if the following modules exist in the project's sources: $list_check_mods ."
-
-   foreach mod_vlnv $list_check_mods {
-      if { [can_resolve_reference $mod_vlnv] == 0 } {
-         lappend list_mods_missing $mod_vlnv
-      }
-   }
-
-   if { $list_mods_missing ne "" } {
-      catch {common::send_gid_msg -ssname BD::TCL -id 2021 -severity "ERROR" "The following module(s) are not found in the project: $list_mods_missing" }
-      common::send_gid_msg -ssname BD::TCL -id 2022 -severity "INFO" "Please add source files for the missing module(s) above."
-      set bCheckIPsPassed 0
-   }
-}
-
-  if { $bCheckIPsPassed != 1 } {
-    common::send_gid_msg -ssname BD::TCL -id 2023 -severity "WARNING" "Will not continue with creation of design due to the error(s) above."
-    return 3
-  }
-
-  variable script_folder
-
-  if { $parentCell eq "" } {
-     set parentCell [get_bd_cells /]
-  }
-
-  # Get object for parentCell
-  set parentObj [get_bd_cells $parentCell]
-  if { $parentObj == "" } {
-     catch {common::send_gid_msg -ssname BD::TCL -id 2090 -severity "ERROR" "Unable to find parent cell <$parentCell>!"}
-     return
-  }
-
-  # Make sure parentObj is hier blk
-  set parentType [get_property TYPE $parentObj]
-  if { $parentType ne "hier" } {
-     catch {common::send_gid_msg -ssname BD::TCL -id 2091 -severity "ERROR" "Parent <$parentObj> has TYPE = <$parentType>. Expected to be <hier>."}
-     return
-  }
-
-  # Save current instance; Restore later
-  set oldCurInst [current_bd_instance .]
-
-  # Set parent object as current
-  current_bd_instance $parentObj
-
-
-  # Create interface ports
-
-  # Create ports
-  set ACLK_0 [ create_bd_port -dir I -type clk ACLK_0 ]
-  set ARESETN_0 [ create_bd_port -dir I -type rst ARESETN_0 ]
-
-  # Create instance: axi4stream_vip_0, and set properties
-  set axi4stream_vip_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi4stream_vip:1.1 axi4stream_vip_0 ]
-  set_property -dict [ list \
-   CONFIG.HAS_TKEEP {0} \
-   CONFIG.HAS_TLAST {0} \
-   CONFIG.HAS_TREADY {1} \
-   CONFIG.HAS_TSTRB {0} \
-   CONFIG.INTERFACE_MODE {MASTER} \
-   CONFIG.TDATA_NUM_BYTES {4} \
-   CONFIG.TDEST_WIDTH {0} \
-   CONFIG.TID_WIDTH {0} \
-   CONFIG.TUSER_WIDTH {0} \
- ] $axi4stream_vip_0
-
-  # Create instance: axi4stream_vip_1, and set properties
-  set axi4stream_vip_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi4stream_vip:1.1 axi4stream_vip_1 ]
-  set_property -dict [ list \
-   CONFIG.INTERFACE_MODE {SLAVE} \
- ] $axi4stream_vip_1
-
-  # Create instance: axis_ema_0, and set properties
-  set block_name axis_ema
-  set block_cell_name axis_ema_0
-  if { [catch {set axis_ema_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
-     catch {common::send_gid_msg -ssname BD::TCL -id 2095 -severity "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
-     return 1
-   } elseif { $axis_ema_0 eq "" } {
-     catch {common::send_gid_msg -ssname BD::TCL -id 2096 -severity "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
-     return 1
-   }
-  
-  # Create interface connections
-  connect_bd_intf_net -intf_net axi4stream_vip_0_M_AXIS [get_bd_intf_pins axi4stream_vip_0/M_AXIS] [get_bd_intf_pins axis_ema_0/S_AXIS]
-  connect_bd_intf_net -intf_net axis_ema_0_M_AXIS [get_bd_intf_pins axi4stream_vip_1/S_AXIS] [get_bd_intf_pins axis_ema_0/M_AXIS]
-
-  # Create port connections
-  connect_bd_net -net ACLK_0_1 [get_bd_ports ACLK_0] [get_bd_pins axi4stream_vip_0/aclk] [get_bd_pins axi4stream_vip_1/aclk] [get_bd_pins axis_ema_0/ACLK]
-  connect_bd_net -net ARESETN_0_1 [get_bd_ports ARESETN_0] [get_bd_pins axi4stream_vip_0/aresetn] [get_bd_pins axi4stream_vip_1/aresetn] [get_bd_pins axis_ema_0/ARESETN]
-
-  # Create address segments
-
-
-  # Restore current instance
-  current_bd_instance $oldCurInst
-
-  validate_bd_design
-  save_bd_design
-  close_bd_design $design_name 
-}
-# End of cr_bd_bd_ema()
-cr_bd_bd_ema ""
-set_property REGISTERED_WITH_MANAGER "1" [get_files bd_ema.bd ] 
-set_property SYNTH_CHECKPOINT_MODE "Hierarchical" [get_files bd_ema.bd ] 
-
-
-# Create wrapper file for bd_ema.bd
-make_wrapper -files [get_files bd_ema.bd] -import -top
-
 if { [get_files axis_bitflip.v] == "" } {
-  import_files -quiet -fileset sources_1 /home/lukefahr/e315/P3_EMA/src/vsrc/axis_bitflip.v
+  import_files -quiet -fileset sources_1 /home/lukefahr/e315/P3_EMA_DEV/src/vsrc/axis_bitflip.v
 }
 
 
@@ -1681,18 +1509,187 @@ proc cr_bd_bd_bitflip { parentCell } {
 # End of cr_bd_bd_bitflip()
 cr_bd_bd_bitflip ""
 set_property REGISTERED_WITH_MANAGER "1" [get_files bd_bitflip.bd ] 
-set_property SYNTH_CHECKPOINT_MODE "Hierarchical" [get_files bd_bitflip.bd ] 
 
 
 # Create wrapper file for bd_bitflip.bd
 make_wrapper -files [get_files bd_bitflip.bd] -import -top
 
+if { [get_files axis_ema.sv] == "" } {
+  import_files -quiet -fileset sources_1 /home/lukefahr/e315/P3_EMA_DEV/src/vsrc/axis_ema.sv
+}
+if { [get_files axis_ema.v] == "" } {
+  import_files -quiet -fileset sources_1 /home/lukefahr/e315/P3_EMA_DEV/src/vsrc/axis_ema.v
+}
+
+
+# Proc to create BD bd_ema
+proc cr_bd_bd_ema { parentCell } {
+# The design that will be created by this Tcl proc contains the following 
+# module references:
+# axis_ema
+
+
+
+  # CHANGE DESIGN NAME HERE
+  set design_name bd_ema
+
+  common::send_gid_msg -ssname BD::TCL -id 2010 -severity "INFO" "Currently there is no design <$design_name> in project, so creating one..."
+
+  create_bd_design $design_name
+
+  set bCheckIPsPassed 1
+  ##################################################################
+  # CHECK IPs
+  ##################################################################
+  set bCheckIPs 1
+  if { $bCheckIPs == 1 } {
+     set list_check_ips "\ 
+  xilinx.com:ip:axi4stream_vip:1.1\
+  "
+
+   set list_ips_missing ""
+   common::send_gid_msg -ssname BD::TCL -id 2011 -severity "INFO" "Checking if the following IPs exist in the project's IP catalog: $list_check_ips ."
+
+   foreach ip_vlnv $list_check_ips {
+      set ip_obj [get_ipdefs -all $ip_vlnv]
+      if { $ip_obj eq "" } {
+         lappend list_ips_missing $ip_vlnv
+      }
+   }
+
+   if { $list_ips_missing ne "" } {
+      catch {common::send_gid_msg -ssname BD::TCL -id 2012 -severity "ERROR" "The following IPs are not found in the IP Catalog:\n  $list_ips_missing\n\nResolution: Please add the repository containing the IP(s) to the project." }
+      set bCheckIPsPassed 0
+   }
+
+  }
+
+  ##################################################################
+  # CHECK Modules
+  ##################################################################
+  set bCheckModules 1
+  if { $bCheckModules == 1 } {
+     set list_check_mods "\ 
+  axis_ema\
+  "
+
+   set list_mods_missing ""
+   common::send_gid_msg -ssname BD::TCL -id 2020 -severity "INFO" "Checking if the following modules exist in the project's sources: $list_check_mods ."
+
+   foreach mod_vlnv $list_check_mods {
+      if { [can_resolve_reference $mod_vlnv] == 0 } {
+         lappend list_mods_missing $mod_vlnv
+      }
+   }
+
+   if { $list_mods_missing ne "" } {
+      catch {common::send_gid_msg -ssname BD::TCL -id 2021 -severity "ERROR" "The following module(s) are not found in the project: $list_mods_missing" }
+      common::send_gid_msg -ssname BD::TCL -id 2022 -severity "INFO" "Please add source files for the missing module(s) above."
+      set bCheckIPsPassed 0
+   }
+}
+
+  if { $bCheckIPsPassed != 1 } {
+    common::send_gid_msg -ssname BD::TCL -id 2023 -severity "WARNING" "Will not continue with creation of design due to the error(s) above."
+    return 3
+  }
+
+  variable script_folder
+
+  if { $parentCell eq "" } {
+     set parentCell [get_bd_cells /]
+  }
+
+  # Get object for parentCell
+  set parentObj [get_bd_cells $parentCell]
+  if { $parentObj == "" } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2090 -severity "ERROR" "Unable to find parent cell <$parentCell>!"}
+     return
+  }
+
+  # Make sure parentObj is hier blk
+  set parentType [get_property TYPE $parentObj]
+  if { $parentType ne "hier" } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2091 -severity "ERROR" "Parent <$parentObj> has TYPE = <$parentType>. Expected to be <hier>."}
+     return
+  }
+
+  # Save current instance; Restore later
+  set oldCurInst [current_bd_instance .]
+
+  # Set parent object as current
+  current_bd_instance $parentObj
+
+
+  # Create interface ports
+
+  # Create ports
+  set ACLK_0 [ create_bd_port -dir I -type clk ACLK_0 ]
+  set ARESETN_0 [ create_bd_port -dir I -type rst ARESETN_0 ]
+
+  # Create instance: axi4stream_vip_0, and set properties
+  set axi4stream_vip_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi4stream_vip:1.1 axi4stream_vip_0 ]
+  set_property -dict [ list \
+   CONFIG.HAS_TKEEP {0} \
+   CONFIG.HAS_TLAST {0} \
+   CONFIG.HAS_TREADY {1} \
+   CONFIG.HAS_TSTRB {0} \
+   CONFIG.INTERFACE_MODE {MASTER} \
+   CONFIG.TDATA_NUM_BYTES {4} \
+   CONFIG.TDEST_WIDTH {0} \
+   CONFIG.TID_WIDTH {0} \
+   CONFIG.TUSER_WIDTH {0} \
+ ] $axi4stream_vip_0
+
+  # Create instance: axi4stream_vip_1, and set properties
+  set axi4stream_vip_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi4stream_vip:1.1 axi4stream_vip_1 ]
+  set_property -dict [ list \
+   CONFIG.INTERFACE_MODE {SLAVE} \
+ ] $axi4stream_vip_1
+
+  # Create instance: axis_ema_0, and set properties
+  set block_name axis_ema
+  set block_cell_name axis_ema_0
+  if { [catch {set axis_ema_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2095 -severity "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   } elseif { $axis_ema_0 eq "" } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2096 -severity "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   }
+  
+  # Create interface connections
+  connect_bd_intf_net -intf_net axi4stream_vip_0_M_AXIS [get_bd_intf_pins axi4stream_vip_0/M_AXIS] [get_bd_intf_pins axis_ema_0/S_AXIS]
+  connect_bd_intf_net -intf_net axis_ema_0_M_AXIS [get_bd_intf_pins axi4stream_vip_1/S_AXIS] [get_bd_intf_pins axis_ema_0/M_AXIS]
+
+  # Create port connections
+  connect_bd_net -net ACLK_0_1 [get_bd_ports ACLK_0] [get_bd_pins axi4stream_vip_0/aclk] [get_bd_pins axi4stream_vip_1/aclk] [get_bd_pins axis_ema_0/ACLK]
+  connect_bd_net -net ARESETN_0_1 [get_bd_ports ARESETN_0] [get_bd_pins axi4stream_vip_0/aresetn] [get_bd_pins axi4stream_vip_1/aresetn] [get_bd_pins axis_ema_0/ARESETN]
+
+  # Create address segments
+
+
+  # Restore current instance
+  current_bd_instance $oldCurInst
+
+  validate_bd_design
+  save_bd_design
+  close_bd_design $design_name 
+}
+# End of cr_bd_bd_ema()
+cr_bd_bd_ema ""
+set_property REGISTERED_WITH_MANAGER "1" [get_files bd_ema.bd ] 
+
+
+# Create wrapper file for bd_ema.bd
+make_wrapper -files [get_files bd_ema.bd] -import -top
+
 # Create 'synth_1' run (if not found)
 if {[string equal [get_runs -quiet synth_1] ""]} {
-    create_run -name synth_1 -part xc7z020clg400-1 -flow {Vivado Synthesis 2018} -strategy "Vivado Synthesis Defaults" -report_strategy {No Reports} -constrset constrs_1
+    create_run -name synth_1 -part xc7z020clg400-1 -flow {Vivado Synthesis 2020} -strategy "Vivado Synthesis Defaults" -report_strategy {No Reports} -constrset constrs_1
 } else {
   set_property strategy "Vivado Synthesis Defaults" [get_runs synth_1]
-  set_property flow "Vivado Synthesis 2018" [get_runs synth_1]
+  set_property flow "Vivado Synthesis 2020" [get_runs synth_1]
 }
 set obj [get_runs synth_1]
 set_property set_report_strategy_name 1 $obj
@@ -1704,7 +1701,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs synth_1] synth_1_s
 }
 set obj [get_report_configs -of_objects [get_runs synth_1] synth_1_synth_report_utilization_0]
 if { $obj != "" } {
-set_property -name "display_name" -value "synth_1_synth_report_utilization_0" -objects $obj
 
 }
 set obj [get_runs synth_1]
@@ -1715,10 +1711,10 @@ current_run -synthesis [get_runs synth_1]
 
 # Create 'impl_1' run (if not found)
 if {[string equal [get_runs -quiet impl_1] ""]} {
-    create_run -name impl_1 -part xc7z020clg400-1 -flow {Vivado Implementation 2018} -strategy "Vivado Implementation Defaults" -report_strategy {No Reports} -constrset constrs_1 -parent_run synth_1
+    create_run -name impl_1 -part xc7z020clg400-1 -flow {Vivado Implementation 2020} -strategy "Vivado Implementation Defaults" -report_strategy {No Reports} -constrset constrs_1 -parent_run synth_1
 } else {
   set_property strategy "Vivado Implementation Defaults" [get_runs impl_1]
-  set_property flow "Vivado Implementation 2018" [get_runs impl_1]
+  set_property flow "Vivado Implementation 2020" [get_runs impl_1]
 }
 set obj [get_runs impl_1]
 set_property set_report_strategy_name 1 $obj
@@ -1731,7 +1727,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_ini
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_init_report_timing_summary_0]
 if { $obj != "" } {
 set_property -name "is_enabled" -value "0" -objects $obj
-set_property -name "display_name" -value "impl_1_init_report_timing_summary_0" -objects $obj
 set_property -name "options.max_paths" -value "10" -objects $obj
 
 }
@@ -1741,7 +1736,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_opt
 }
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_opt_report_drc_0]
 if { $obj != "" } {
-set_property -name "display_name" -value "impl_1_opt_report_drc_0" -objects $obj
 
 }
 # Create 'impl_1_opt_report_timing_summary_0' report (if not found)
@@ -1751,7 +1745,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_opt
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_opt_report_timing_summary_0]
 if { $obj != "" } {
 set_property -name "is_enabled" -value "0" -objects $obj
-set_property -name "display_name" -value "impl_1_opt_report_timing_summary_0" -objects $obj
 set_property -name "options.max_paths" -value "10" -objects $obj
 
 }
@@ -1762,7 +1755,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_pow
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_power_opt_report_timing_summary_0]
 if { $obj != "" } {
 set_property -name "is_enabled" -value "0" -objects $obj
-set_property -name "display_name" -value "impl_1_power_opt_report_timing_summary_0" -objects $obj
 set_property -name "options.max_paths" -value "10" -objects $obj
 
 }
@@ -1772,7 +1764,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_pla
 }
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_place_report_io_0]
 if { $obj != "" } {
-set_property -name "display_name" -value "impl_1_place_report_io_0" -objects $obj
 
 }
 # Create 'impl_1_place_report_utilization_0' report (if not found)
@@ -1781,7 +1772,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_pla
 }
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_place_report_utilization_0]
 if { $obj != "" } {
-set_property -name "display_name" -value "impl_1_place_report_utilization_0" -objects $obj
 
 }
 # Create 'impl_1_place_report_control_sets_0' report (if not found)
@@ -1790,7 +1780,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_pla
 }
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_place_report_control_sets_0]
 if { $obj != "" } {
-set_property -name "display_name" -value "impl_1_place_report_control_sets_0" -objects $obj
 set_property -name "options.verbose" -value "1" -objects $obj
 
 }
@@ -1801,7 +1790,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_pla
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_place_report_incremental_reuse_0]
 if { $obj != "" } {
 set_property -name "is_enabled" -value "0" -objects $obj
-set_property -name "display_name" -value "impl_1_place_report_incremental_reuse_0" -objects $obj
 
 }
 # Create 'impl_1_place_report_incremental_reuse_1' report (if not found)
@@ -1811,7 +1799,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_pla
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_place_report_incremental_reuse_1]
 if { $obj != "" } {
 set_property -name "is_enabled" -value "0" -objects $obj
-set_property -name "display_name" -value "impl_1_place_report_incremental_reuse_1" -objects $obj
 
 }
 # Create 'impl_1_place_report_timing_summary_0' report (if not found)
@@ -1821,7 +1808,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_pla
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_place_report_timing_summary_0]
 if { $obj != "" } {
 set_property -name "is_enabled" -value "0" -objects $obj
-set_property -name "display_name" -value "impl_1_place_report_timing_summary_0" -objects $obj
 set_property -name "options.max_paths" -value "10" -objects $obj
 
 }
@@ -1832,7 +1818,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_pos
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_post_place_power_opt_report_timing_summary_0]
 if { $obj != "" } {
 set_property -name "is_enabled" -value "0" -objects $obj
-set_property -name "display_name" -value "impl_1_post_place_power_opt_report_timing_summary_0" -objects $obj
 set_property -name "options.max_paths" -value "10" -objects $obj
 
 }
@@ -1843,7 +1828,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_phy
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_phys_opt_report_timing_summary_0]
 if { $obj != "" } {
 set_property -name "is_enabled" -value "0" -objects $obj
-set_property -name "display_name" -value "impl_1_phys_opt_report_timing_summary_0" -objects $obj
 set_property -name "options.max_paths" -value "10" -objects $obj
 
 }
@@ -1853,7 +1837,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_rou
 }
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_drc_0]
 if { $obj != "" } {
-set_property -name "display_name" -value "impl_1_route_report_drc_0" -objects $obj
 
 }
 # Create 'impl_1_route_report_methodology_0' report (if not found)
@@ -1862,7 +1845,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_rou
 }
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_methodology_0]
 if { $obj != "" } {
-set_property -name "display_name" -value "impl_1_route_report_methodology_0" -objects $obj
 
 }
 # Create 'impl_1_route_report_power_0' report (if not found)
@@ -1871,7 +1853,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_rou
 }
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_power_0]
 if { $obj != "" } {
-set_property -name "display_name" -value "impl_1_route_report_power_0" -objects $obj
 
 }
 # Create 'impl_1_route_report_route_status_0' report (if not found)
@@ -1880,7 +1861,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_rou
 }
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_route_status_0]
 if { $obj != "" } {
-set_property -name "display_name" -value "impl_1_route_report_route_status_0" -objects $obj
 
 }
 # Create 'impl_1_route_report_timing_summary_0' report (if not found)
@@ -1889,7 +1869,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_rou
 }
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_timing_summary_0]
 if { $obj != "" } {
-set_property -name "display_name" -value "impl_1_route_report_timing_summary_0" -objects $obj
 set_property -name "options.max_paths" -value "10" -objects $obj
 
 }
@@ -1899,7 +1878,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_rou
 }
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_incremental_reuse_0]
 if { $obj != "" } {
-set_property -name "display_name" -value "impl_1_route_report_incremental_reuse_0" -objects $obj
 
 }
 # Create 'impl_1_route_report_clock_utilization_0' report (if not found)
@@ -1908,7 +1886,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_rou
 }
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_clock_utilization_0]
 if { $obj != "" } {
-set_property -name "display_name" -value "impl_1_route_report_clock_utilization_0" -objects $obj
 
 }
 # Create 'impl_1_route_report_bus_skew_0' report (if not found)
@@ -1917,7 +1894,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_rou
 }
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_route_report_bus_skew_0]
 if { $obj != "" } {
-set_property -name "display_name" -value "impl_1_route_report_bus_skew_0" -objects $obj
 set_property -name "options.warn_on_violation" -value "1" -objects $obj
 
 }
@@ -1927,7 +1903,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_pos
 }
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_post_route_phys_opt_report_timing_summary_0]
 if { $obj != "" } {
-set_property -name "display_name" -value "impl_1_post_route_phys_opt_report_timing_summary_0" -objects $obj
 set_property -name "options.max_paths" -value "10" -objects $obj
 set_property -name "options.warn_on_violation" -value "1" -objects $obj
 
@@ -1938,7 +1913,6 @@ if { [ string equal [get_report_configs -of_objects [get_runs impl_1] impl_1_pos
 }
 set obj [get_report_configs -of_objects [get_runs impl_1] impl_1_post_route_phys_opt_report_bus_skew_0]
 if { $obj != "" } {
-set_property -name "display_name" -value "impl_1_post_route_phys_opt_report_bus_skew_0" -objects $obj
 set_property -name "options.warn_on_violation" -value "1" -objects $obj
 
 }

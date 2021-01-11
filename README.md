@@ -5,9 +5,9 @@
 To load this project onto the Pynq, run the following from the Pynq terminal:
 
 ```
+$ su xilinx
 $ cd ~/jupyter_notebooks/
 $ git clone https://github.com/Engr315/P3_EMA.git P3_EMA
-$ chown -r xilinx.xilinx P3_EMA
 ```
 
 ## Vivado
