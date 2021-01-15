@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 
+import argparse
 import json
 import os
+import shutil
 import subprocess
 import re
 
 
 class Helper():
+
     def __init__(self):
 
         self.MY_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -34,18 +37,28 @@ class Helper():
 
 
     def build_vivado(self,):
+        #sanity check
         if os.path.exists( self.MY_DIR + '/vivado_project/vivado_project.xpr'):
             print ("Found Vivado Project, Skipping.")
-        else:
-            print ("Building Vivado Project")
-            command = 'vivado -mode batch -source P3_EMA.tcl'
-            self.run_command(command)
+            return
+
+        if shutil.which('vivado') == None:
+            raise Exception("Vivado Not Found")
+
+        print ("Building Vivado Project")
+        command = 'vivado -mode batch -source ' + self.J['Proj'] + '.tcl'
+        self.run_command(command)
 
     def init_pynq(self):
         proj = self.J['Proj']
         ssh = 'ssh -i ' + self.priv_key + ' xilinx@'+self.J['IP'] 
 
         self.run_command('chmod 0600 ' + self.priv_key)
+        
+        #sanity check
+        if self.run_command(ssh + ' "ls ~/jupyter_notebooks/' + proj + '"') != '':
+            print ("Found Pynq project, Skipping")
+            return
 
         commands = [
                     ssh + ' "mkdir -p ~/tmp" ',
@@ -85,6 +98,10 @@ class Helper():
         if not re.search(regex, IP):  
             print("Invalid IP address, not updating")
             return
+        
+        if IP == self.J['IP']:
+            print ("IPs Match, Skipping")
+            return 
 
         print ("Updating IP Address")
         self.J['IP'] = IP
@@ -100,39 +117,49 @@ class Helper():
 
             
 
+if __name__ == "__main__":
 
-h = Helper()
+    h = Helper()
+    ap = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    ap.add_argument('command', choices=['init','bitstream', 'setIp'], 
+            help=   'init:initialize the project\n'+
+                    'bitstream: upload the bitstream to the Pynq\n'+
+                    'setIp: set the Pynq IP Address')
+    ap.add_argument('--ip', type=str, nargs='?', help="Ip Address of Pynq")
 
-print ("Welcome to the E315 Helper Script!")
-print (" Pynq IP: ", h.J['IP'])
+    args = ap.parse_args()
 
-print ("Options: ")
+    print ("Welcome to the E315 Helper Script!")
+    print (" Current Pynq IP: ", h.J['IP'])
 
-options = [ 'init: initialize the project', 
-            'bitstream:   upload the bitstream to the Pynq',
-            'ip:  set the Pynq IP address',
-          ]
-for option in options: 
-    print ('\t', option)
+    args.command = args.command.lower()
 
+    if args.command == 'init':
+        print ('Running ', args.command)
 
-print ("Please enter a command: ")
-cmd = input().lower()
+        if args.ip:
+            h.set_ip(args.ip)
 
-if cmd == 'init':
-    print ('Running init')
-    print ("Please specify the Pynq's IP address: ")
-    ip = input()
-    h.set_ip(ip)
-    h.build_vivado()
-    h.init_pynq()
-elif cmd == 'bitstream':
-    print ('Loading bitstream')
-    h.load_bitstream()
-elif cmd == 'ip':
-    print ("Please specify a new IP address: ")
-    ip = input()
-    h.set_ip(ip)
+        h.build_vivado()
+        h.init_pynq()
+
+    elif args.command == 'bitstream':
+        print ('Running ', args.command)
+
+        if args.ip:
+            h.set_ip(args.ip)
+
+        h.load_bitstream()
+
+    elif args.command == 'setip':
+        print ('Running ', args.command)
+
+        if args.ip:
+            newip = args.ip
+        else:
+            print ("Please specify a new IP address: ")
+            newip = input()
+        h.set_ip(newip)
 
 
 
