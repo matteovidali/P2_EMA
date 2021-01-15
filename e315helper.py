@@ -56,7 +56,7 @@ class Helper():
         self.run_command('chmod 0600 ' + self.priv_key)
         
         #sanity check
-        if self.run_command(ssh + ' "ls ~/jupyter_notebooks/' + proj + '"') != '':
+        if self.run_command(ssh + ' "ls ~/jupyter_notebooks/' + proj + '"')[0] != b'':
             print ("Found Pynq project, Skipping")
             return
 
