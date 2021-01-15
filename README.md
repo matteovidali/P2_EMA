@@ -1,26 +1,24 @@
 # P3_EMA
 
-## Pynq
 
-To load this project onto the Pynq, run the following from the Pynq terminal:
+This project comes with a helper Python script.  We've provided a helper script
+to automate several of the more complex tasks.  
 
-```
-$ su xilinx
-$ cd ~/jupyter_notebooks/
-$ git clone https://github.com/Engr315/P3_EMA.git P3_EMA
-```
-
-## Vivado
-
-To create the Vivado project, run the following:
+To get started, please use this command (and specify with the correct Pynq IP): 
 
 ```
- $ ./build_project.sh
+$ ./e315helper.py init --ip 192.168.2.99
 ```
 
-To upload the bitstream to the Pynq, run the following:
- (replacing $PYNQ_IP with the correct IP address) 
+You can update the Pynq's IP later with this:
 
 ```
- $ ./load_bitstream.sh $PYNQ_IP
+$ ./e315helper.py setIp --ip 192.168.2.99
 ```
+
+Once you've generated a bitstream and you're ready to upload it to the Pynq, run the following:
+
+```
+$ ./e315helper.py bitstream 
+```
+
