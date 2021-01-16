@@ -180,7 +180,8 @@ module tb_ema();
             read_data( test_read_data );       
             $display( "Read Data: %h", test_read_data );
             assert( test_read_data == ((test_write_data >> 2) + (last_read_data >> 2) + (last_read_data >> 1)))
-                else $fatal(1, "Bad Test Response: %h != %h", test_read_data, ((test_write_data >> 1) + (last_read_data >> 1)) );
+                else $fatal(1, "Bad Test Response: %h != %h", test_read_data, 
+                ((test_write_data >> 2) + (last_read_data >> 2) + (last_read_data >> 1)) );
             last_read_data = test_read_data;
         end
         
