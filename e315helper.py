@@ -10,13 +10,14 @@ import re
 
 class Helper():
 
-    def __init__(self):
+    def __init__(self, vivado=None):
 
         self.MY_DIR = os.path.dirname(os.path.realpath(__file__))
         self.JF = self.MY_DIR + '/.data.json'
         self.J = self.load_json()
 
         self.priv_key = self.MY_DIR + '/.id_rsa.xilinx.priv'
+        self.vivado = vivado
 
     def load_json(self):
         if os.path.exists( self.JF):
@@ -32,7 +33,8 @@ class Helper():
      
 
     def run_command(self, command):
-        result = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+        print ('running: ', command)
+        result = subprocess.Popen(command, shell=True, executable='/bin/bash', stdout=subprocess.PIPE, stdin=subprocess.PIPE)
         return result.communicate()
 
 
@@ -42,12 +44,19 @@ class Helper():
             print ("Found Vivado Project, Skipping.")
             return
 
-        if shutil.which('vivado') == None:
-            raise Exception("Vivado Not Found")
+        command = 'vivado -mode batch -source ' + self.J['Proj'] + '.tcl'
+
+        if self.vivado != None:
+            print ("vivado specified from command line")
+            command = command.replace('vivado', self.vivado)
+
+        elif shutil.which('vivado') != None:
+            print ("Found Vivado")
+        else:
+            raise Exception("Vivado not found!")
 
         print ("Building Vivado Project")
-        command = 'vivado -mode batch -source ' + self.J['Proj'] + '.tcl'
-        self.run_command(command)
+        self.run_command(command) 
 
     def init_pynq(self):
         proj = self.J['Proj']
@@ -73,7 +82,6 @@ class Helper():
                     'GIT_SSH_COMMAND=\'ssh -i '+self.priv_key + '\' git push pynq master', 
                    ]   
         for command in commands:                     
-            print ("Running command:", command )
             self.run_command(command)
 
     def load_bitstream(self):
@@ -86,7 +94,6 @@ class Helper():
                 scp + ' ' + hwh + ' ' + pynq + 'bitstream.hwh', 
                    ]
         for command in commands:                     
-            print ("Running command:", command )
             self.run_command(command)
 
     def set_ip(self, IP):
@@ -111,7 +118,6 @@ class Helper():
                      'git remote add pynq xilinx@' + self.J['IP'] + ':~/jupyter_notebooks/' + self.J['Proj'],
                    ]   
         for command in commands:                     
-            print ("Running command:", command )
             self.run_command(command)
 
 
@@ -126,6 +132,8 @@ if __name__ == "__main__":
                     'bitstream: upload the bitstream to the Pynq\n'+
                     'setIp: set the Pynq IP Address')
     ap.add_argument('--ip', type=str, nargs='?', help="Ip Address of Pynq")
+    ap.add_argument('--vivadoOnly', action='store_true', help="Initialize only the Vivado project")
+    ap.add_argument('--vivado_bin', type=str, nargs='?', help="Path to Vivado binary")
 
     args = ap.parse_args()
 
@@ -134,14 +142,20 @@ if __name__ == "__main__":
 
     args.command = args.command.lower()
 
+    if args.vivado_bin:
+        h = Helper( vivado=args.vivado_bin)
+
     if args.command == 'init':
         print ('Running ', args.command)
 
         if args.ip:
             h.set_ip(args.ip)
-
-        h.build_vivado()
-        h.init_pynq()
+        
+        if args.vivadoOnly:
+            h.build_vivado()
+        else:
+            h.build_vivado()
+            h.init_pynq()
 
     elif args.command == 'bitstream':
         print ('Running ', args.command)
