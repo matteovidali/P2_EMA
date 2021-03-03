@@ -70,7 +70,7 @@ class Helper():
             raise Exception ("Project Missing!")
 
         command = 'vivado -mode batch ' + \
-                '-source ' + self.MY_DIR + '/tcl/synthesis.tcl' + \
+                '-source ' + self.MY_DIR + '/tcl/impl.tcl' + \
                 ' -tclargs ' + self.MY_DIR + ' ' + str(num_cores)
 
         if self.vivado != None:
