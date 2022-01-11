@@ -30,7 +30,9 @@ class Helper():
             with open(self.JF, 'r') as f:
                 return json.load(f)
         else:
-            return {"IP": "192.168.2.99", "Proj": "P3_EMA"}
+            return {"IP": "192.168.2.99", 
+                    "Proj": "P4_Popcount", 
+                    "fpga_design": "bd_fpga"}
 
     def save_json(self):
          with open(self.JF, 'w') as f:
@@ -50,12 +52,13 @@ class Helper():
             print ("Found Vivado Project, Skipping.")
             return
 
-        command = 'vivado -mode batch -source ' + self.J['Proj'] + '.tcl'
+        command = 'vivado -mode batch -source tcl/setup.tcl' 
+        fixup = 'vivado -mode batch -source tcl/fixup.tcl'
 
         if self.vivado != None:
             print ("vivado specified from command line")
             command = command.replace('vivado', self.vivado)
-
+            fixup = fixup.replace('vivado', self.vivado)
         elif shutil.which('vivado') != None:
             print ("Found Vivado")
         else:
@@ -63,6 +66,10 @@ class Helper():
 
         print ("Building Vivado Project")
         self.run_command(command) 
+
+        if os.path.exists( self.MY_DIR + '/tcl/fixup.tcl'):
+            print ("Found extra fixup tcl script, running")
+            self.run_command(fixup)
 
     def impl_vivado(self, num_cores = 1):
         #sanity check
@@ -113,11 +120,19 @@ class Helper():
             self.run_command(command)
 
     def load_bitstream(self):
-        bit =  self.MY_DIR + '/vivado_project/vivado_project.runs/impl_1/design_fpga_wrapper.bit'
-        hwh = self.MY_DIR + '/vivado_project/vivado_project.gen/sources_1/bd/design_fpga/hw_handoff/design_fpga.hwh'
+        bit =  self.MY_DIR + '/vivado_project/vivado_project.runs/impl_1/' + self.J['fpga_design'] + '_wrapper.bit'
+
+        hwh = self.MY_DIR + '/vivado_project/vivado_project.gen/sources_1/bd/'+self.J['fpga_design']+'/hw_handoff/' + \
+                            self.J['fpga_design']+'.hwh'
+
+        if not os.path.exists( hwh):
+            print ('trying alternate hwh file path')
+            hwh = self.MY_DIR + '/verilog/vsrc/'+ self.J['fpga_design'] + '/hw_handoff/' + self.J['fpga_design'] + '.hwh'
+
         scp = 'scp -i ' + self.priv_key
         pynq = 'xilinx@'+self.J['IP'] + ':~/jupyter_notebooks/' + self.J['Proj'] + '/Pynq/'
         commands = [ 
+                'chmod 0600 ' + self.priv_key,
                 scp + ' ' + bit + ' ' + pynq + 'bitstream.bit', 
                 scp + ' ' + hwh + ' ' + pynq + 'bitstream.hwh', 
                    ]
