@@ -39,4 +39,6 @@ set_property file_type SystemVerilog [get_files *.sv]
 # set active simulation
 current_fileset -simset [ get_filesets sim_bitflip]
 
+#set the top for synthesis
+set_property top design_fpga_wrapper [current_fileset]
 
