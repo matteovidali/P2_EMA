@@ -8,9 +8,8 @@ set TESTDIR ${MYDIR}/../verilog/vtests/
 create_project -force vivado_project.xpr ${BASEDIR}/vivado_project -part xc7z020clg400-1
 
 # add source files
-add_files ${SRCDIR}/axis_bitflip.v
-add_files ${SRCDIR}/axis_ema.sv
-add_files ${SRCDIR}/axis_ema.v
+add_files [glob ${SRCDIR}/*.v]
+add_files [glob ${SRCDIR}/*.sv]
 
 add_files ${SRCDIR}/design_fpga/design_fpga.bd
 make_wrapper -files [get_files *.bd] -top
@@ -40,9 +39,11 @@ set_property top ema_tb [get_filesets sim_ema2]
 # set *.sv to SystemVerilog
 set_property file_type SystemVerilog [get_files *.sv]
 
+#set the top for synthesis
+set_property top design_fpga_wrapper [current_fileset]
 # set active simulation
 current_fileset -simset [ get_filesets sim_bitflip]
 
-#set the top for synthesis
-set_property top design_fpga_wrapper [current_fileset]
+#make sims run longer by default
+set_property -name {xsim.simulate.runtime} -value {1000us} -objects [get_filesets sim_*]
 
