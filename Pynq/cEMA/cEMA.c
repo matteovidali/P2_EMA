@@ -19,14 +19,14 @@ reset(PyObject *self)
 static PyObject *
 ema(PyObject *self, PyObject *args)
 {
-    uint64_t num;
+    uint32_t num;
 
     if (!PyArg_ParseTuple(args, "l", &num))
         return NULL;
     
     //FIXME
-    uint64_t res = 0; 
-
+    uint32_t res = 0; 
+    
     return PyLong_FromLong(res);
 }
 
@@ -39,18 +39,35 @@ static PyObject *
 ema_all(PyObject *self, PyObject *args)
 {
     PyObject *x_lst; //input list
-    PyObject *y_lst = NULL; //output list
-    int32_t sz; //size
+    PyObject *y_lst; //output list
+    uint32_t sz;
 
+    //parse the list argument
+    if (!PyArg_ParseTuple(args, "O", &x_lst)) {
+        return NULL;
+    }
+    
+    sz = PyObject_Length(x_lst);
+
+    //stop early if this isn't a list
+    if (sz < 0){
+        return NULL;
+    }
+   
+    //create the output list
+    y_lst = PyList_New(sz);
+
+    //reset ema
+    ema_reset();
+    
     //FIXME
 
-    //return y_lst;
-    Py_RETURN_NONE;
+    return y_lst;
 }
 
 
 static PyMethodDef cEMAMethods[] = {
-    {"reset",  reset, METH_VARARGS, "reset the ema initial state"},
+    {"reset", reset, METH_VARARGS, "reset the ema initial state"},
     {"ema", ema, METH_VARARGS, "run ema on a unint64_t value"}, 
     {"ema_all",  ema_all, METH_VARARGS, "run ema on a list of values"}, 
     {NULL, NULL, 0, NULL}        /* Sentinel */
