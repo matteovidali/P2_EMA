@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import logging
 import json
 import os
 import shutil
@@ -12,6 +13,8 @@ import re
 class Helper():
 
     def __init__(self, vivado=None):
+        
+        self.checkOS()
 
         self.MY_DIR = os.path.dirname(os.path.realpath(__file__))
         self.JF = self.MY_DIR + '/.data.json'
@@ -21,7 +24,18 @@ class Helper():
         self.vivado = vivado
 
         self.version = "1.0.0"
-    
+
+    def checkOS(self):
+        platform = sys.platform
+        if platform == "linux" or platform == "linux2":
+            logging.debug("Found Linux")
+        elif platform == "darwin":
+            logging.debug("Found OSX")
+            raise Exception("OSX Not Supported")
+        elif platform == "win32":
+            logging.debug("Found Windows")
+            raise Exception("Windows Not Supported")
+
     def getVersion(self):
         return self.version
 
@@ -32,10 +46,12 @@ class Helper():
         else:
             return {"IP": "192.168.2.99", 
                     "Proj": "P4_Popcount", 
-                    "fpga_design": "bd_fpga"}
+                    "fpga_design": "bd_fpga",
+                    "branch": "master"}
 
     def save_json(self):
-         with open(self.JF, 'w') as f:
+        logging.debug("saving JSON to " + self.JF)
+        with open(self.JF, 'w') as f:
             json.dump( self.J, f) 
 
      
@@ -45,6 +61,21 @@ class Helper():
         result = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
         return result.communicate()
 
+    def vivado_build_cleanup(self,):
+        vsrc_dir = self.MY_DIR + '/verilog/vsrc/'
+        bd_name = self.J['fpga_design']
+        cleanups = [ bd_name+'.bda', bd_name+'.bxml', bd_name+'_ooc.xml', 
+                     'hdl', 'hw_handoff', 'ip', 'ipshared', 'sim', 'synth' ]
+        cleanups = [ vsrc_dir + bd_name + '/' + x for x in cleanups]
+        for f in cleanups: 
+            try: 
+                shutil.rmtree(f) 
+                logging.debug('cleanup: ' + f)
+            except NotADirectoryError: 
+                os.remove(f)
+                logging.debug('cleanup: ' + f)
+            except FileNotFoundError:
+                logging.debug('skipped: ' + f) 
 
     def build_vivado(self,):
         #sanity check
@@ -52,15 +83,17 @@ class Helper():
             print ("Found Vivado Project, Skipping.")
             return
 
+        #remove remnents of old builds
+        self.vivado_build_cleanup()
+
         command = 'vivado -mode batch -source tcl/setup.tcl' 
-        fixup = 'vivado -mode batch -source tcl/fixup.tcl'
 
         if self.vivado != None:
-            print ("vivado specified from command line")
+            logging.debug ("vivado specified from command line")
             command = command.replace('vivado', self.vivado)
             fixup = fixup.replace('vivado', self.vivado)
         elif shutil.which('vivado') != None:
-            print ("Found Vivado")
+            logging.debug ("Found Vivado")
         else:
             raise Exception("Vivado not found!")
 
@@ -68,7 +101,7 @@ class Helper():
         self.run_command(command) 
 
         if os.path.exists( self.MY_DIR + '/tcl/fixup.tcl'):
-            print ("Found extra fixup tcl script, running")
+            logging.debug ("Found extra fixup tcl script, running")
             self.run_command(fixup)
 
     def impl_vivado(self, num_cores = 1):
@@ -81,10 +114,10 @@ class Helper():
                 ' -tclargs ' + self.MY_DIR + ' ' + str(num_cores)
 
         if self.vivado != None:
-            print ("vivado specified from command line")
+            logging.debug("vivado specified from command line")
             command = command.replace('vivado', self.vivado)
         elif shutil.which('vivado') != None:
-            print ("Found Vivado")
+            logging.debug("Found Vivado")
         else:
             raise Exception("Vivado not found!")
 
@@ -109,12 +142,13 @@ class Helper():
                     ssh + ' "cd ~/tmp && git init --bare" ',
                     'git remote remove tmp', 
                     'git remote add tmp xilinx@' + self.J['IP'] + ':~/tmp/',
-                    'GIT_SSH_COMMAND=\'ssh -i '+self.priv_key + '\' git push tmp master', 
+                    'GIT_SSH_COMMAND=\'ssh -i '+self.priv_key + '\' git push tmp ' + self.J['branch'], 
                     ssh + ' "git clone tmp ~/jupyter_notebooks/' + proj + ' "',
                     ssh + ' "rm -rf ~/tmp" ',
                     'git remote remove pynq', 
                     'git remote add pynq xilinx@' + self.J['IP'] + ':~/jupyter_notebooks/' + proj,
-                    'GIT_SSH_COMMAND=\'ssh -i '+self.priv_key + '\' git push pynq master', 
+                    'GIT_SSH_COMMAND=\'ssh -i '+self.priv_key + '\' git push pynq ' + self.J['branch'], 
+                    ssh + ' "cd ~/jupyter_notebooks/' + proj + ' && git checkout ' + self.J['branch'] + '"'
                    ]   
         for command in commands:                     
             self.run_command(command)
@@ -126,7 +160,7 @@ class Helper():
                             self.J['fpga_design']+'.hwh'
 
         if not os.path.exists( hwh):
-            print ('trying alternate hwh file path')
+            logging.info('trying alternate hwh file path')
             hwh = self.MY_DIR + '/verilog/vsrc/'+ self.J['fpga_design'] + '/hw_handoff/' + self.J['fpga_design'] + '.hwh'
 
         scp = 'scp -i ' + self.priv_key
@@ -169,6 +203,7 @@ class Parser():
 
     def __init__ (self):
         ap = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+        ap.add_argument('-d', '--debug', action='store_true', help="Enable Debug Mode")
 
         sap = ap.add_subparsers(title='command', dest="command")
 
@@ -199,12 +234,22 @@ class Parser():
 
         init_ap.set_defaults(function=self.init)
         args = ap.parse_args()
-        
-        if not hasattr(self, args.command):
-            print ('Unrecognized Command')
+
+        # load debug mode
+        if args.debug: 
+            logging.basicConfig(format='%(levelname)s:%(message)s',
+                                level=logging.DEBUG, 
+                                handlers = [
+                                    logging.FileHandler('debug.log', mode='w'),
+                                    logging.StreamHandler()
+                                ])
+            logging.debug("Enabling Debug")
+
+        if args.command == None: 
+            print ('No command specified!')
             ap.print_help()
             exit(1)
-        
+       
         #jump to the correct command function
         getattr(self, args.command)(args)
 
