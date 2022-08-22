@@ -1,6 +1,6 @@
 
 build: cEMA.c ema.c ema.h
-	python3 setup.py install
+	pip3 install -e . 
 
 test.o: test.c ema.h ema.c
 	gcc -Wall test.c ema.c -o test.o 
