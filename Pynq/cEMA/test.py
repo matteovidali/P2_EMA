@@ -41,14 +41,14 @@ for i in range(len(y1)):
         sys.exit(-1)
 print ("PASSED!")
 
-print("\nCompute Tripple EMA (Y3)")
+print("\nCompute Triple EMA (Y3)")
 # run ema two more times on the results
 y2 = cEMA.ema_all(y1)
 y3 = cEMA.ema_all(y2)
 
-print("\nTripple EMA (Y3): ", y3) 
+print("\nTriple EMA (Y3): ", y3) 
 
-print("\nChecking Tripple EMA (Y3): ", end="")
+print("\nChecking Triple EMA (Y3): ", end="")
 for i in range(len(y3)):
     if y3[i] != expect_y3[i]:
         print(f"FAILED!\n\tFound Mismatch at Index: {i}")

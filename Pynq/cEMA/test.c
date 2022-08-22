@@ -47,7 +47,7 @@ int main()
     }
     printf("PASSED!\n");
 
-    printf("\nCompute Tripple EMA (Y3)\n");
+    printf("\nCompute Triple EMA (Y3)\n");
     // run simple_ema two more times on the results
     ema_reset();
     for (int i = 0; i < size; ++i){
@@ -59,13 +59,13 @@ int main()
         c_y3[i] = ema_simple(c_y2[i]);
     }
 
-    printf("\nTripple EMA (Y3): ["); 
+    printf("\nTriple EMA (Y3): ["); 
     for (int i = 0; i < size; ++i){
         printf(" %llu", c_y3[i]);
     }
     printf(" ]\n");
 
-    printf("\nChecking Tripple EMA (Y3): ");
+    printf("\nChecking Triple EMA (Y3): ");
     for (int i = 0; i < size; ++i){
         if (c_y3[i] != expect_y3[i]){
             printf("FAILED!\n\tFound Mismatch at Index: %d\n", i);
