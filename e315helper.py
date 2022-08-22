@@ -148,7 +148,8 @@ class Helper():
                     'git remote remove pynq', 
                     'git remote add pynq xilinx@' + self.J['IP'] + ':~/jupyter_notebooks/' + proj,
                     'GIT_SSH_COMMAND=\'ssh -i '+self.priv_key + '\' git push pynq ' + self.J['branch'], 
-                    ssh + ' "cd ~/jupyter_notebooks/' + proj + ' && git checkout ' + self.J['branch'] + '"'
+                    ssh + ' "cd ~/jupyter_notebooks/' + proj + ' && git checkout ' + self.J['branch'] + '"',
+                    ssh + ' "cd ~/jupyter_notebooks/' + proj + ' && git config receive.denyCurrentBranch" '
                    ]   
         for command in commands:                     
             self.run_command(command)
