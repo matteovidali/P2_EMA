@@ -19,7 +19,7 @@ reset(PyObject *self)
 static PyObject *
 ema(PyObject *self, PyObject *args)
 {
-    uint32_t num;
+    unsigned long num;
 
     if (!PyArg_ParseTuple(args, "l", &num))
         return NULL;
