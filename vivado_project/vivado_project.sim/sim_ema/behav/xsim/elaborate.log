@@ -1,0 +1,29 @@
+Vivado Simulator 2020.2
+Copyright 1986-1999, 2001-2020 Xilinx, Inc. All Rights Reserved.
+Running: /l/Xilinx_Vivado_SDK_Web_2020.2_1118_1232/Vivado/2020.2/bin/unwrapped/lnx64.o/xelab -wto 33e96f9829144c8d9d92ddac47dcbcd2 --incr --debug typical --relax --mt 8 -L xil_defaultlib -L axis_infrastructure_v1_1_0 -L axi4stream_vip_v1_1_8 -L uvm -L xilinx_vip -L unisims_ver -L unimacro_ver -L secureip -L xpm --snapshot tb_ema_behav xil_defaultlib.tb_ema xil_defaultlib.glbl -log elaborate.log 
+Using 8 slave threads.
+Starting static elaboration
+Pass Through NonSizing Optimizer
+Completed static elaboration
+Starting simulation data flow analysis
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling package xilinx_vip.axi4stream_vip_pkg
+Compiling package xilinx_vip.xil_common_vip_pkg
+Compiling module xilinx_vip.axi4stream_vip_axi4streampc(DEST...
+Compiling module xilinx_vip.cb
+Compiling module xilinx_vip.axi4stream_vip_if(C_AXI4STREAM_S...
+Compiling module axi4stream_vip_v1_1_8.axi4stream_vip_v1_1_8_top(C_AXI4...
+Compiling module xil_defaultlib.bd_ema_axi4stream_vip_0_0
+Compiling module xilinx_vip.cb
+Compiling module xilinx_vip.axi4stream_vip_if(C_AXI4STREAM_S...
+Compiling module axi4stream_vip_v1_1_8.axi4stream_vip_v1_1_8_top(C_AXI4...
+Compiling module xil_defaultlib.bd_ema_axi4stream_vip_1_0
+Compiling module xil_defaultlib.axis_ema_sv
+Compiling module xil_defaultlib.axis_ema
+Compiling module xil_defaultlib.bd_ema_axis_ema_0_0
+Compiling module xil_defaultlib.bd_ema
+Compiling module xil_defaultlib.bd_ema_wrapper
+Compiling module xil_defaultlib.tb_ema
+Compiling module xil_defaultlib.glbl
+Built simulation snapshot tb_ema_behav

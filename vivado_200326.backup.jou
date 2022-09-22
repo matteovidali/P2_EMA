@@ -1,0 +1,16 @@
+#-----------------------------------------------------------
+# Vivado v2020.2 (64-bit)
+# SW Build 3064766 on Wed Nov 18 09:12:47 MST 2020
+# IP Build 3064653 on Wed Nov 18 14:17:31 MST 2020
+# Start of session at: Wed Sep 21 20:08:43 2022
+# Process ID: 200326
+# Current directory: /nfs/nfs2/home/mvidali/E315/P2_EMA
+# Command line: vivado vivado_project/vivado_project.xpr
+# Log file: /nfs/nfs2/home/mvidali/E315/P2_EMA/vivado.log
+# Journal file: /nfs/nfs2/home/mvidali/E315/P2_EMA/vivado.jou
+#-----------------------------------------------------------
+start_gui
+open_project vivado_project/vivado_project.xpr
+update_compile_order -fileset sources_1
+launch_runs impl_1 -to_step write_bitstream -jobs 4
+wait_on_run impl_1

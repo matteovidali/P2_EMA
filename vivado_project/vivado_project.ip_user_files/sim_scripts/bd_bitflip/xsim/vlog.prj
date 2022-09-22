@@ -1,0 +1,15 @@
+verilog xil_defaultlib --include "/l/Xilinx_Vivado_SDK_Web_2020.2_1118_1232/Vivado/2020.2/data/xilinx_vip/include" --include "../../../../../verilog/vtests/sim_bitflip/bd_bitflip/ipshared/8713/hdl" \
+"../../../bd/bd_bitflip/ip/bd_bitflip_axis_bitflip_0_0/sim/bd_bitflip_axis_bitflip_0_0.v" \
+
+sv xil_defaultlib --include "/l/Xilinx_Vivado_SDK_Web_2020.2_1118_1232/Vivado/2020.2/data/xilinx_vip/include" --include "../../../../../verilog/vtests/sim_bitflip/bd_bitflip/ipshared/8713/hdl" \
+"../../../bd/bd_bitflip/ip/bd_bitflip_axi4stream_vip_0_0/sim/bd_bitflip_axi4stream_vip_0_0_pkg.sv" \
+"../../../bd/bd_bitflip/ip/bd_bitflip_axi4stream_vip_0_0/sim/bd_bitflip_axi4stream_vip_0_0.sv" \
+"../../../bd/bd_bitflip/ip/bd_bitflip_axi4stream_vip_1_0/sim/bd_bitflip_axi4stream_vip_1_0_pkg.sv" \
+"../../../bd/bd_bitflip/ip/bd_bitflip_axi4stream_vip_1_0/sim/bd_bitflip_axi4stream_vip_1_0.sv" \
+
+verilog xil_defaultlib --include "/l/Xilinx_Vivado_SDK_Web_2020.2_1118_1232/Vivado/2020.2/data/xilinx_vip/include" --include "../../../../../verilog/vtests/sim_bitflip/bd_bitflip/ipshared/8713/hdl" \
+"../../../bd/bd_bitflip/sim/bd_bitflip.v" \
+
+verilog xil_defaultlib "glbl.v"
+
+nosort

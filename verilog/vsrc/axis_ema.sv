@@ -37,14 +37,28 @@ module axis_ema_sv(
     input           M_AXIS_TREADY
 
     );
+    reg [31:0] y;
+    initial y=32'h3e8;
+    
+    reg [31:0] tdata;
+    assign tdata=S_AXIS_TDATA;
+
+    wire tvalid;
+    assign tvalid = S_AXIS_TVALID;
+    
+    always @(posedge ACLK or posedge tvalid) begin
+        if (!ARESETN) y = 32'h3e8;
+        if (tvalid) y = (tdata >> 2) + (y >> 2) + (y >> 1);
+    end
+
 
     //Update me!  By default this does nothing!   
-    assign M_AXIS_TDATA = ~S_AXIS_TDATA; 
-
+    assign M_AXIS_TDATA = y; 
     assign M_AXIS_TKEEP = S_AXIS_TKEEP;
     assign M_AXIS_TLAST = S_AXIS_TLAST;
     assign M_AXIS_TVALID = S_AXIS_TVALID; 
-    assign S_AXIS_TREADY = M_AXIS_TREADY;   
+    assign S_AXIS_TREADY = M_AXIS_TREADY;  
+    
         
             
 endmodule

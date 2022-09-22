@@ -1,0 +1,32 @@
+Vivado Simulator 2020.2
+Copyright 1986-1999, 2001-2020 Xilinx, Inc. All Rights Reserved.
+Running: /l/Xilinx_Vivado_SDK_Web_2020.2_1118_1232/Vivado/2020.2/bin/unwrapped/lnx64.o/xelab -wto 33e96f9829144c8d9d92ddac47dcbcd2 --incr --debug typical --relax --mt 8 -L xil_defaultlib -L axis_infrastructure_v1_1_0 -L axi4stream_vip_v1_1_8 -L uvm -L xilinx_vip -L unisims_ver -L unimacro_ver -L secureip -L xpm --snapshot tb_bitflip_behav xil_defaultlib.tb_bitflip xil_defaultlib.glbl -log elaborate.log 
+Using 8 slave threads.
+Starting static elaboration
+Pass Through NonSizing Optimizer
+WARNING: [VRFC 10-696] first argument of $fatal is invalid, expecting 0, 1 or 2 [/nfs/nfs2/home/mvidali/E315/P2_EMA/verilog/vtests/sim_bitflip/tb_bitflip.sv:168]
+WARNING: [VRFC 10-696] first argument of $fatal is invalid, expecting 0, 1 or 2 [/nfs/nfs2/home/mvidali/E315/P2_EMA/verilog/vtests/sim_bitflip/tb_bitflip.sv:179]
+Completed static elaboration
+INFO: [XSIM 43-4329] Assuming default value 1 for the first arguement of $fatal at Line 168, File /nfs/nfs2/home/mvidali/E315/P2_EMA/verilog/vtests/sim_bitflip/tb_bitflip.sv
+INFO: [XSIM 43-4329] Assuming default value 1 for the first arguement of $fatal at Line 179, File /nfs/nfs2/home/mvidali/E315/P2_EMA/verilog/vtests/sim_bitflip/tb_bitflip.sv
+Starting simulation data flow analysis
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling package xilinx_vip.axi4stream_vip_pkg
+Compiling package xilinx_vip.xil_common_vip_pkg
+Compiling module xilinx_vip.axi4stream_vip_axi4streampc(DEST...
+Compiling module xilinx_vip.cb
+Compiling module xilinx_vip.axi4stream_vip_if(C_AXI4STREAM_S...
+Compiling module axi4stream_vip_v1_1_8.axi4stream_vip_v1_1_8_top(C_AXI4...
+Compiling module xil_defaultlib.bd_bitflip_axi4stream_vip_0_0
+Compiling module xilinx_vip.cb
+Compiling module xilinx_vip.axi4stream_vip_if(C_AXI4STREAM_S...
+Compiling module axi4stream_vip_v1_1_8.axi4stream_vip_v1_1_8_top(C_AXI4...
+Compiling module xil_defaultlib.bd_bitflip_axi4stream_vip_1_0
+Compiling module xil_defaultlib.axis_bitflip
+Compiling module xil_defaultlib.bd_bitflip_axis_bitflip_0_0
+Compiling module xil_defaultlib.bd_bitflip
+Compiling module xil_defaultlib.bd_bitflip_wrapper
+Compiling module xil_defaultlib.tb_bitflip
+Compiling module xil_defaultlib.glbl
+Built simulation snapshot tb_bitflip_behav

@@ -1,0 +1,18 @@
+INFO: [VRFC 10-2263] Analyzing Verilog file "/nfs/nfs2/home/mvidali/E315/P2_EMA/verilog/vsrc/axis_bitflip.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module axis_bitflip
+INFO: [VRFC 10-2263] Analyzing Verilog file "/nfs/nfs2/home/mvidali/E315/P2_EMA/vivado_project/vivado_project.ip_user_files/bd/bd_bitflip/ip/bd_bitflip_axis_bitflip_0_0/sim/bd_bitflip_axis_bitflip_0_0.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module bd_bitflip_axis_bitflip_0_0
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/nfs/nfs2/home/mvidali/E315/P2_EMA/vivado_project/vivado_project.ip_user_files/bd/bd_bitflip/ip/bd_bitflip_axi4stream_vip_0_0/sim/bd_bitflip_axi4stream_vip_0_0_pkg.sv" into library xil_defaultlib
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/nfs/nfs2/home/mvidali/E315/P2_EMA/vivado_project/vivado_project.ip_user_files/bd/bd_bitflip/ip/bd_bitflip_axi4stream_vip_0_0/sim/bd_bitflip_axi4stream_vip_0_0.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module bd_bitflip_axi4stream_vip_0_0
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/nfs/nfs2/home/mvidali/E315/P2_EMA/vivado_project/vivado_project.ip_user_files/bd/bd_bitflip/ip/bd_bitflip_axi4stream_vip_1_0/sim/bd_bitflip_axi4stream_vip_1_0_pkg.sv" into library xil_defaultlib
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/nfs/nfs2/home/mvidali/E315/P2_EMA/vivado_project/vivado_project.ip_user_files/bd/bd_bitflip/ip/bd_bitflip_axi4stream_vip_1_0/sim/bd_bitflip_axi4stream_vip_1_0.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module bd_bitflip_axi4stream_vip_1_0
+INFO: [VRFC 10-2263] Analyzing Verilog file "/nfs/nfs2/home/mvidali/E315/P2_EMA/vivado_project/vivado_project.ip_user_files/bd/bd_bitflip/sim/bd_bitflip.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module bd_bitflip
+INFO: [VRFC 10-2263] Analyzing Verilog file "/nfs/nfs2/home/mvidali/E315/P2_EMA/verilog/vtests/sim_bitflip/bd_bitflip/hdl/bd_bitflip_wrapper.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module bd_bitflip_wrapper
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/nfs/nfs2/home/mvidali/E315/P2_EMA/verilog/vtests/sim_bitflip/tb_bitflip.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_bitflip
+INFO: [VRFC 10-2263] Analyzing Verilog file "/nfs/nfs2/home/mvidali/E315/P2_EMA/vivado_project/vivado_project.sim/sim_bitflip/behav/xsim/glbl.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module glbl

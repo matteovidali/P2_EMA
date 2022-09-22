@@ -1,0 +1,26 @@
+# compile verilog/system verilog design source files
+sv xil_defaultlib  --include "../../../../../verilog/vsrc/design_fpga/ipshared/ec67/hdl" --include "../../../../../verilog/vsrc/design_fpga/ipshared/34f8/hdl" --include "../../../../../verilog/vtests/sim_bitflip/bd_bitflip/ipshared/8713/hdl" --include "../../../../../verilog/vtests/sim_ema/bd_ema/ipshared/8713/hdl" --include "/l/Xilinx_Vivado_SDK_Web_2020.2_1118_1232/Vivado/2020.2/data/xilinx_vip/include" \
+"../../../../../verilog/vsrc/axis_ema.sv" \
+
+verilog xil_defaultlib  --include "../../../../../verilog/vsrc/design_fpga/ipshared/ec67/hdl" --include "../../../../../verilog/vsrc/design_fpga/ipshared/34f8/hdl" --include "../../../../../verilog/vtests/sim_bitflip/bd_bitflip/ipshared/8713/hdl" --include "../../../../../verilog/vtests/sim_ema/bd_ema/ipshared/8713/hdl" --include "/l/Xilinx_Vivado_SDK_Web_2020.2_1118_1232/Vivado/2020.2/data/xilinx_vip/include" \
+"../../../../../verilog/vsrc/axis_ema.v" \
+
+sv xil_defaultlib  --include "../../../../../verilog/vsrc/design_fpga/ipshared/ec67/hdl" --include "../../../../../verilog/vsrc/design_fpga/ipshared/34f8/hdl" --include "../../../../../verilog/vtests/sim_bitflip/bd_bitflip/ipshared/8713/hdl" --include "../../../../../verilog/vtests/sim_ema/bd_ema/ipshared/8713/hdl" --include "/l/Xilinx_Vivado_SDK_Web_2020.2_1118_1232/Vivado/2020.2/data/xilinx_vip/include" \
+"../../../../vivado_project.ip_user_files/bd/bd_ema/ip/bd_ema_axi4stream_vip_0_0/sim/bd_ema_axi4stream_vip_0_0_pkg.sv" \
+"../../../../vivado_project.ip_user_files/bd/bd_ema/ip/bd_ema_axi4stream_vip_0_0/sim/bd_ema_axi4stream_vip_0_0.sv" \
+"../../../../vivado_project.ip_user_files/bd/bd_ema/ip/bd_ema_axi4stream_vip_1_0/sim/bd_ema_axi4stream_vip_1_0_pkg.sv" \
+"../../../../vivado_project.ip_user_files/bd/bd_ema/ip/bd_ema_axi4stream_vip_1_0/sim/bd_ema_axi4stream_vip_1_0.sv" \
+
+verilog xil_defaultlib  --include "../../../../../verilog/vsrc/design_fpga/ipshared/ec67/hdl" --include "../../../../../verilog/vsrc/design_fpga/ipshared/34f8/hdl" --include "../../../../../verilog/vtests/sim_bitflip/bd_bitflip/ipshared/8713/hdl" --include "../../../../../verilog/vtests/sim_ema/bd_ema/ipshared/8713/hdl" --include "/l/Xilinx_Vivado_SDK_Web_2020.2_1118_1232/Vivado/2020.2/data/xilinx_vip/include" \
+"../../../../vivado_project.ip_user_files/bd/bd_ema/ip/bd_ema_axis_ema_0_0/sim/bd_ema_axis_ema_0_0.v" \
+"../../../../vivado_project.ip_user_files/bd/bd_ema/sim/bd_ema.v" \
+"../../../../../verilog/vtests/sim_ema/bd_ema/hdl/bd_ema_wrapper.v" \
+
+sv xil_defaultlib  --include "../../../../../verilog/vsrc/design_fpga/ipshared/ec67/hdl" --include "../../../../../verilog/vsrc/design_fpga/ipshared/34f8/hdl" --include "../../../../../verilog/vtests/sim_bitflip/bd_bitflip/ipshared/8713/hdl" --include "../../../../../verilog/vtests/sim_ema/bd_ema/ipshared/8713/hdl" --include "/l/Xilinx_Vivado_SDK_Web_2020.2_1118_1232/Vivado/2020.2/data/xilinx_vip/include" \
+"../../../../../verilog/vtests/sim_ema/tb_ema.sv" \
+
+# compile glbl module
+verilog xil_defaultlib "glbl.v"
+
+# Do not sort compile order
+nosort

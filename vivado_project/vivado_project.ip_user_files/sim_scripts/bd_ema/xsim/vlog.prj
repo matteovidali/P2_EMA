@@ -1,0 +1,13 @@
+sv xil_defaultlib --include "/l/Xilinx_Vivado_SDK_Web_2020.2_1118_1232/Vivado/2020.2/data/xilinx_vip/include" --include "../../../../../verilog/vtests/sim_ema/bd_ema/ipshared/8713/hdl" \
+"../../../bd/bd_ema/ip/bd_ema_axi4stream_vip_0_0/sim/bd_ema_axi4stream_vip_0_0_pkg.sv" \
+"../../../bd/bd_ema/ip/bd_ema_axi4stream_vip_0_0/sim/bd_ema_axi4stream_vip_0_0.sv" \
+"../../../bd/bd_ema/ip/bd_ema_axi4stream_vip_1_0/sim/bd_ema_axi4stream_vip_1_0_pkg.sv" \
+"../../../bd/bd_ema/ip/bd_ema_axi4stream_vip_1_0/sim/bd_ema_axi4stream_vip_1_0.sv" \
+
+verilog xil_defaultlib --include "/l/Xilinx_Vivado_SDK_Web_2020.2_1118_1232/Vivado/2020.2/data/xilinx_vip/include" --include "../../../../../verilog/vtests/sim_ema/bd_ema/ipshared/8713/hdl" \
+"../../../bd/bd_ema/ip/bd_ema_axis_ema_0_0/sim/bd_ema_axis_ema_0_0.v" \
+"../../../bd/bd_ema/sim/bd_ema.v" \
+
+verilog xil_defaultlib "glbl.v"
+
+nosort

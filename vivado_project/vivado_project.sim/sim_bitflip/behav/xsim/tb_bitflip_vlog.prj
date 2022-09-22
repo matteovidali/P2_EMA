@@ -1,0 +1,23 @@
+# compile verilog/system verilog design source files
+verilog xil_defaultlib  --include "../../../../../verilog/vtests/sim_bitflip/bd_bitflip/ipshared/8713/hdl" --include "/l/Xilinx_Vivado_SDK_Web_2020.2_1118_1232/Vivado/2020.2/data/xilinx_vip/include" \
+"../../../../../verilog/vsrc/axis_bitflip.v" \
+"../../../../vivado_project.ip_user_files/bd/bd_bitflip/ip/bd_bitflip_axis_bitflip_0_0/sim/bd_bitflip_axis_bitflip_0_0.v" \
+
+sv xil_defaultlib  --include "../../../../../verilog/vtests/sim_bitflip/bd_bitflip/ipshared/8713/hdl" --include "/l/Xilinx_Vivado_SDK_Web_2020.2_1118_1232/Vivado/2020.2/data/xilinx_vip/include" \
+"../../../../vivado_project.ip_user_files/bd/bd_bitflip/ip/bd_bitflip_axi4stream_vip_0_0/sim/bd_bitflip_axi4stream_vip_0_0_pkg.sv" \
+"../../../../vivado_project.ip_user_files/bd/bd_bitflip/ip/bd_bitflip_axi4stream_vip_0_0/sim/bd_bitflip_axi4stream_vip_0_0.sv" \
+"../../../../vivado_project.ip_user_files/bd/bd_bitflip/ip/bd_bitflip_axi4stream_vip_1_0/sim/bd_bitflip_axi4stream_vip_1_0_pkg.sv" \
+"../../../../vivado_project.ip_user_files/bd/bd_bitflip/ip/bd_bitflip_axi4stream_vip_1_0/sim/bd_bitflip_axi4stream_vip_1_0.sv" \
+
+verilog xil_defaultlib  --include "../../../../../verilog/vtests/sim_bitflip/bd_bitflip/ipshared/8713/hdl" --include "/l/Xilinx_Vivado_SDK_Web_2020.2_1118_1232/Vivado/2020.2/data/xilinx_vip/include" \
+"../../../../vivado_project.ip_user_files/bd/bd_bitflip/sim/bd_bitflip.v" \
+"../../../../../verilog/vtests/sim_bitflip/bd_bitflip/hdl/bd_bitflip_wrapper.v" \
+
+sv xil_defaultlib  --include "../../../../../verilog/vtests/sim_bitflip/bd_bitflip/ipshared/8713/hdl" --include "/l/Xilinx_Vivado_SDK_Web_2020.2_1118_1232/Vivado/2020.2/data/xilinx_vip/include" \
+"../../../../../verilog/vtests/sim_bitflip/tb_bitflip.sv" \
+
+# compile glbl module
+verilog xil_defaultlib "glbl.v"
+
+# Do not sort compile order
+nosort
